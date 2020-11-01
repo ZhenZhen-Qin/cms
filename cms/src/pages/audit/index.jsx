@@ -1,31 +1,19 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { Button, Divider, message, Input, Drawer } from 'antd';
 import React, { useState, useRef } from 'react';
+import { connect, FormattedMessage, formatMessage } from 'umi';
 import { PageContainer, FooterToolbar } from '@ant-design/pro-layout';
 import ProTable from '@ant-design/pro-table';
 import ProDescriptions from '@ant-design/pro-descriptions';
 import CreateForm from './components/CreateForm';
 import UpdateForm from './components/UpdateForm';
-import { queryRule, updateRule, addRule, removeRule } from './service';
+import { getCommunityList,queryRule, updateRule, addRule, removeRule } from './service';
 /**
  * 添加节点
  * @param fields
  */
 
-const handleAdd = async (fields) => {
-  const hide = message.loading('正在添加');
 
-  try {
-    await addRule({ ...fields });
-    hide();
-    message.success('添加成功');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('添加失败请重试！');
-    return false;
-  }
-};
 /**
  * 更新节点
  * @param fields
@@ -72,7 +60,7 @@ const handleRemove = async (selectedRows) => {
   }
 };
 
-const TableList = () => {
+const TableList = ({ submitting, dispatch }) => {
   const [createModalVisible, handleModalVisible] = useState(false);
   const [updateModalVisible, handleUpdateModalVisible] = useState(false);
   const [stepFormValues, setStepFormValues] = useState({});
@@ -84,22 +72,44 @@ const TableList = () => {
       title: '社团ID',
       dataIndex: 'id',
       tip: '社团ID是唯一的 key',
+      hideInForm: true,
+    },
+    {
+      title: '社团名称',
+      dataIndex: 'name',
       formItemProps: {
         rules: [
           {
             required: true,
-            message: '社团ID为必填项',
+            message: '社团名称为必填项',
+          },
+        ],
+      },
+      sorter: true,
+    },
+    {
+      title: '社团类别',
+      dataIndex: 'type',
+      formItemProps: {
+        rules: [
+          {
+            required: true,
+            message: '社团类别为必填项',
           },
         ],
       },
     },
     {
-      title: '社团名称',
-      dataIndex: 'name',
-    },
-    {
-      title: '社团类别',
-      dataIndex: 'type',
+      title: '社团指导老师',
+      dataIndex: 'teacher',
+      formItemProps: {
+        rules: [
+          {
+            required: true,
+            message: '社团指导老师为必填项',
+          },
+        ],
+      },
     },
     {
       title: '描述',
@@ -107,16 +117,8 @@ const TableList = () => {
       valueType: 'textarea',
     },
     {
-      title: '服务调用次数',
-      dataIndex: 'callNo',
-      sorter: true,
-      hideInForm: true,
-      renderText: (val) => `${val} 万`,
-    },
-    {
       title: '状态',
       dataIndex: 'status',
-      hideInForm: true,
       valueEnum: {
         0: {
           text: '关闭',
@@ -176,6 +178,56 @@ const TableList = () => {
       ),
     },
   ];
+
+
+  // // 社团列表
+  // const getAuditList = (params) => {
+  //   console.log(params);
+  //   dispatch({
+  //     type: 'audit/fetch',
+  //     payload: params,
+  //   }).then((res) => {
+  //     console.log(res);
+  //   });
+  // };
+
+  // 新增
+  const handleAdd = async (fields) => {
+  const hide = message.loading('正在添加');
+
+  console.log(fields)
+
+  let params = {
+    cmId:'',
+    name:fields.name,
+    teacher:fields.teacher,
+    creatorId:'',
+    creatorName:'',
+    createTime:'',
+    typeId:fields.type,
+    desc:fields.desc,
+    order:'',
+    status:''
+  }
+
+  try {
+    await dispatch({
+      type: 'audit/addCommunityInfo',
+      payload: {...params},
+    }).then((res) => {
+      console.log(res);
+    });
+
+    hide();
+    message.success('添加成功');
+    return true;
+  } catch (error) {
+    hide();
+    message.error('添加失败请重试！');
+    return false;
+  }
+};
+
   return (
     <PageContainer>
       <ProTable
@@ -190,7 +242,8 @@ const TableList = () => {
             <PlusOutlined /> 新建
           </Button>,
         ]}
-        request={(params, sorter, filter) => queryRule({ ...params, sorter, filter })}
+        request={(params, sorter, filter) => getCommunityList({ ...params, sorter, filter })}
+        // request={(params, sorter, filter) => queryRule({ ...params, sorter, filter })}
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => setSelectedRows(selectedRows),
@@ -227,10 +280,13 @@ const TableList = () => {
           <Button type="primary">批量审批</Button>
         </FooterToolbar>
       )}
+      {/* 创建社团 */}
       <CreateForm onCancel={() => handleModalVisible(false)} modalVisible={createModalVisible}>
         <ProTable
           onSubmit={async (value) => {
             const success = await handleAdd(value);
+
+            console.log(success);
 
             if (success) {
               handleModalVisible(false);
@@ -294,4 +350,7 @@ const TableList = () => {
   );
 };
 
-export default TableList;
+export default connect(({ audit, loading }) => ({
+  audit,
+  submitting: loading.effects['audit/submitAdvancedForm'],
+}))(TableList);

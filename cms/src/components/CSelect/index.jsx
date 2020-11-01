@@ -1,5 +1,6 @@
 import React from 'react';
 import { Select } from 'antd';
+const { Option } = Select;
 class CSelect extends React.Component {
     render() {
         let { data, mode = "", onSelect, onChange, showTotal, labelFormat,labelValue,hint,value,allowClear,tokenSeparators,...resetProps} = this.props;

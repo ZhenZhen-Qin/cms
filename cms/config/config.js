@@ -384,7 +384,20 @@ export default defineConfig({
   // @ts-ignore
   title: false,
   ignoreMomentLocale: true,
-  proxy: proxy[REACT_APP_ENV || 'dev'],
+  // proxy: proxy[REACT_APP_ENV || 'dev'],
+  proxy: {
+    '/api/': 'http://localhost:3000/',
+    //只要是以 “/myserver ”开头的，都指向http://localhost:8060/test/
+
+    //如果不想始终传递 /server ，则需要重写路径；方法如下：
+    //只要前端调用的接口是以 /server/api/ 开头的，都指向http://localhost:8080/
+    //  '/server/api/': {
+    //    target: 'http://localhost:3000/',
+    //    changeOrigin: true,
+    //    pathRewrite: { '^/server': '' },
+    //    //最终指向到的服务器地址是 "http://localhost:8080/api/ "
+    //  },
+  },
   manifest: {
     basePath: '/',
   },

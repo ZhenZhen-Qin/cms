@@ -4,7 +4,7 @@
  */ 
 const mongoose = require("mongoose"); 
 let bookSchema = mongoose.Schema({
-    cmId:{type:String,required:true}, // 社团id
+    cmId:{type:String}, // 社团id
     name:{type:String,required:true}, // 社团名称
     creatorId:{type:String}, // 社团创建者id
     creatorName:{type:String}, // 社团创建者名称

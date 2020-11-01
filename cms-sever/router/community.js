@@ -33,12 +33,9 @@ const Community = require('../mongo/model/community.js');
  * @apiSuccess {String} data  返回数据
  */
 Router.post('/addCommunityInfo', (req, res) => {
-    const {
-        params
-    } = req.body;
+    const params = req.body;
     Community.insertMany(params)
         .then((data) => {
-            console.log(data)
             if (data.length > 0) {
                 res.send({
                     err: 0,
@@ -57,7 +54,6 @@ Router.post('/addCommunityInfo', (req, res) => {
         })
 });
 
-
 /**
  * @api {post} /community/getCommunityList getCommunityList
  * @apiName getCommunityList
@@ -73,22 +69,21 @@ Router.post('/addCommunityInfo', (req, res) => {
 Router.post('/getCommunityList', (req, res) => {
     let {
         pageSize,
-        page
+        current
     } = req.body;
     let obj = {}
     Community.find()
         .then((data) => {
             // 获取总条数
             obj.total = data.length
-            return Community.find().limit(Number(pageSize)).skip((Number(page) - 1) * Number(pageSize))
+            return Community.find().limit(Number(pageSize)).skip((Number(current) - 1) * Number(pageSize))
         })
         .then((data) => {
-            obj.communitylist = data;
-            res.send({
-                err: 0,
-                msg: '查询成功',
-                data: obj
-            })
+            obj.current = current;
+            obj.data = data;
+            obj.pageSize = pageSize;
+            obj.success = true;
+            res.send(obj);
         })
         .catch((err) => {
             console.log(err)
@@ -118,7 +113,6 @@ Router.post('/findCommunitysByType', (req, res) => {
         pageSize,
         page
     } = req.body;
-    let obj = {};
     Community.find({
             typeid
         })
@@ -130,11 +124,10 @@ Router.post('/findCommunitysByType', (req, res) => {
             }).limit(Number(pageSize)).skip((Number(page) - 1) * Number(pageSize));
         })
         .then((data) => {
-            obj.communitylist = data;
+
+            console.log(data)
             res.send({
-                err: 0,
-                msg: '查询成功',
-                data: obj
+               
             })
         })
         .catch((err) => {
@@ -288,7 +281,7 @@ Router.post('/findCommunityByKw', (req, res) => {
  * @apiName updateCommunityInfo
  * @apiGroup community
  *
- * @apiParam {String} _id 图书id
+ * @apiParam {String} _id 社团id
  * @apiParam {String} typeid 类别id
  * @apiParam {String} communityname 书名
  * @apiParam {String} author 作者
@@ -304,39 +297,16 @@ Router.post('/findCommunityByKw', (req, res) => {
  * @apiSuccess {String} data  返回数据
  */
 Router.post('/updateCommunityInfo', (req, res) => {
-    let id = req.body._id;
-    console.log(id)
-    let {
-        typeid,
-        communityname,
-        author,
-        publish,
-        publicDate,
-        unitprice,
-        communityimg,
-        communitydesc,
-        stock
-    } = req.body;
+    let { name, createId, createName, teacher, createTime, typeId, desc, order, status } = req.body;
     Community.updateOne({
-            _id: id
+            _id: req.body._id
         }, {
-            $set: {
-                typeid,
-                communityname,
-                author,
-                publish,
-                publicDate,
-                unitprice,
-                communityimg,
-                communitydesc,
-                stock
-            }
+            $set: { name, createId, createName, teacher, createTime, typeId, desc, order, status }
         })
         .then((data) => {
-            console.log(data);
             res.send({
                 err: 0,
-                msg: 'update success',
+                msg: '修改成功',
                 data: null
             })
         })
@@ -344,7 +314,7 @@ Router.post('/updateCommunityInfo', (req, res) => {
             console.log(err);
             res.send({
                 err: -1,
-                msg: 'update error',
+                msg: '修改失败',
                 data: null
             })
         })

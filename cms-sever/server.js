@@ -16,23 +16,27 @@ app.all("*",function(req,res,next){
     next()//是否执行继续
 })
 
-app.get("/user/login",(req,res)=>{
-    //这里的res获取到的请求是很多数据的，res.query返回的是前端地址栏传过来的对象
-});
+// app.get("/api/user/login",(req,res)=>{
+//     console.log('login')
+//     //这里的res获取到的请求是很多数据的，res.query返回的是前端地址栏传过来的对象
+// });
 console.log(__dirname);
 //静态资源的引用
 app.use('/view',express.static(path.join(__dirname,'./view')));
 app.use('/public',express.static(path.join(__dirname,'./public')));
-
+app.use(express.json());
 
 // 分发路由
-// 社团相关
-const communityRouter = require('./router/community.js');
-app.use("/community",communityRouter);
-
-
+// 登录相关
 const adminRouter = require('./router/userAdmin.js');
 app.use("/user",adminRouter);
+
+// 社团相关
+const communityRouter = require('./router/community.js');
+app.use("/api/community",communityRouter);
+
+
+
 
 const bookRouter = require('./router/bookAdmin.js');
 app.use("/book",bookRouter);

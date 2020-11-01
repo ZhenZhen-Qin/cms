@@ -57,3 +57,47 @@ export const getRouteAuthority = (path, routeData) => {
   });
   return authorities;
 };
+
+/**
+ * 获取父级 url
+ * @param {string} location 页面当前 url 信息对象
+ */
+export function getParentUrl(location) {
+  let { pathname, search } = location;
+  let backUrl = '';
+  if (!pathname) {
+    return backUrl;
+  }
+
+  const reg = /^\/.*\//;
+  const regResult = pathname.match(reg);
+  if (regResult && regResult[0]) {
+    backUrl = regResult[0];
+
+    const tailReg = /\/$/;
+
+    // 如果尾部带有 /，则把 / 去掉
+    if (tailReg.test(backUrl)) {
+      backUrl = backUrl.replace(tailReg, '');
+    }
+
+    if (search) {
+      backUrl += search;
+    }
+  }
+
+  return backUrl;
+}
+
+/**
+ * 获取公共 table 分页属性
+ * @param {object} pagination table 分页属性
+ */
+export function getPaginationProps(pagination) {
+  return {
+    showSizeChanger: true,
+    showQuickJumper: true,
+    showTotal: total => `共 ${total} 条记录`,
+    ...pagination,
+  };
+}

@@ -1,5 +1,5 @@
 import { message } from 'antd';
-import communityService from './service';
+import { addCommunityInfo, } from './service';
 const Model = {
   namespace: 'create_community',
   state: {},
@@ -10,10 +10,11 @@ const Model = {
     },
     
     // 创建社团
-    *addCommunity({ payload }, { call }) {
-      const result = yield call(communityService.addCommunity, payload);
+    *addCommunityInfo({ payload }, { call }) {
+      const result = yield call(addCommunityInfo, payload);
       return result;
     },
+
   },
 };
 export default Model;
