@@ -1,7 +1,7 @@
 import { message } from 'antd';
 import { addCommunityInfo, } from './service';
 const Model = {
-  namespace: 'create_community',
+  namespace: 'community-list',
   state: {},
   effects: {
     *submitRegularForm({ payload }, { call }) {

@@ -1,16 +1,17 @@
-/***    
+/***
  * 社团的操作
  */
-const express = require('express');
+const express = require("express");
 const Router = express.Router();
-const querystring = require('querystring');
-var bodyParser = require('body-parser');
-Router.use(bodyParser.urlencoded({
-    extended: false
-}));
+const querystring = require("querystring");
+var bodyParser = require("body-parser");
+Router.use(
+  bodyParser.urlencoded({
+    extended: false,
+  })
+);
 
-const Community = require('../mongo/model/community.js');
-
+const Community = require("../mongo/model/community.js");
 
 /**
  * @api {post} /community/addCommunityInfo addCommunityInfo
@@ -32,26 +33,26 @@ const Community = require('../mongo/model/community.js');
  * @apiSuccess {String} msg  结果信息
  * @apiSuccess {String} data  返回数据
  */
-Router.post('/addCommunityInfo', (req, res) => {
-    const params = req.body;
-    Community.insertMany(params)
-        .then((data) => {
-            if (data.length > 0) {
-                res.send({
-                    err: 0,
-                    msg: '创建社团成功',
-                    data: null
-                });
-            }
-        })
-        .catch((err) => {
-            console.log(err)
-            res.send({
-                err: -1,
-                msg: '创建社团失败',
-                data: null
-            });
-        })
+Router.post("/addCommunityInfo", (req, res) => {
+  const params = req.body;
+  Community.insertMany(params)
+    .then((data) => {
+      if (data.length > 0) {
+        res.send({
+          err: 0,
+          msg: "创建社团成功",
+          data: null,
+        });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      res.send({
+        err: -1,
+        msg: "创建社团失败",
+        data: null,
+      });
+    });
 });
 
 /**
@@ -66,35 +67,73 @@ Router.post('/addCommunityInfo', (req, res) => {
  * @apiSuccess {String} msg  结果信息
  * @apiSuccess {String} data  返回数据
  */
-Router.post('/getCommunityList', (req, res) => {
-    let {
-        pageSize,
-        current
-    } = req.body;
-    let obj = {}
+Router.post("/getCommunityList", (req, res) => {
+  let {
+    pageSize,
+    current,
+    communityScreen,
+    userName
+  } = req.body;
+  let obj = {};
+  if (communityScreen === "0") {
+    // 查找全部
     Community.find()
-        .then((data) => {
-            // 获取总条数
-            obj.total = data.length
-            return Community.find().limit(Number(pageSize)).skip((Number(current) - 1) * Number(pageSize))
-        })
-        .then((data) => {
-            obj.current = current;
-            obj.data = data;
-            obj.pageSize = pageSize;
-            obj.success = true;
-            res.send(obj);
-        })
-        .catch((err) => {
-            console.log(err)
-            res.send({
-                err: -1,
-                msg: '查询错误',
-                data: null
-            })
-        })
-})
-
+      .then((data) => {
+        // 获取总条数
+        obj.total = data.length;
+        return Community.find()
+          .limit(Number(pageSize)).sort([
+            ['createTime', 'desc']
+          ])
+          .skip((Number(current) - 1) * Number(pageSize));
+      })
+      .then((data) => {
+        obj.current = current;
+        obj.data = data;
+        obj.pageSize = pageSize;
+        obj.success = true;
+        res.send(obj);
+      })
+      .catch((err) => {
+        console.log(err);
+        res.send({
+          err: -1,
+          msg: "查询错误",
+          data: null,
+        });
+      });
+  } else {
+    Community.find({
+        creatorUserName: userName
+      })
+      .then((data) => {
+        // 获取总条数
+        obj.total = data.length;
+        return Community.find({
+          creatorUserName: userName
+          })
+          .limit(Number(pageSize)).sort([
+            ['createTime', 'desc']
+          ])
+          .skip((Number(current) - 1) * Number(pageSize));
+      })
+      .then((data) => {
+        obj.current = current;
+        obj.data = data;
+        obj.pageSize = pageSize;
+        obj.success = true;
+        res.send(obj);
+      })
+      .catch((err) => {
+        console.log(err);
+        res.send({
+          err: -1,
+          msg: "查询错误",
+          data: null,
+        });
+      });
+  }
+});
 
 /**
  * @api {post} /community/findCommunitysByType findCommunitysByType
@@ -107,41 +146,40 @@ Router.post('/getCommunityList', (req, res) => {
  * @apiSuccess {String} msg  结果信息
  * @apiSuccess {String} data  返回数据
  */
-Router.post('/findCommunitysByType', (req, res) => {
-    let {
-        typeid,
-        pageSize,
-        page
-    } = req.body;
-    Community.find({
-            typeid
-        })
-        .then((data) => {
-            // 获取总条数
-            obj.total = data.length;
-            return Community.find({
-                typeid
-            }).limit(Number(pageSize)).skip((Number(page) - 1) * Number(pageSize));
-        })
-        .then((data) => {
-
-            console.log(data)
-            res.send({
-               
-            })
-        })
-        .catch((err) => {
-            console.log(err)
-            res.send({
-                err: -1,
-                msg: '查询错误',
-                data: null
-            })
-        })
-})
-
-
-
+Router.post("/findCommunitysByCreator", (req, res) => {
+  let {
+    creatorUserName,
+    pageSize,
+    page
+  } = req.body;
+  Community.find({
+      creatorUserName,
+    })
+    .then((data) => {
+      // 获取总条数
+      obj.total = data.length;
+      return Community.find()
+        .limit(Number(pageSize)).sort([
+          ['createTime', 'desc']
+        ])
+        .skip((Number(current) - 1) * Number(pageSize));
+    })
+    .then((data) => {
+      obj.current = current;
+      obj.data = data;
+      obj.pageSize = pageSize;
+      obj.success = true;
+      res.send(obj);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.send({
+        err: -1,
+        msg: "查询错误",
+        data: null,
+      });
+    });
+});
 
 /**
  * @api {post} /community/findUnitCommunity findUnitCommunity
@@ -154,35 +192,32 @@ Router.post('/findCommunitysByType', (req, res) => {
  * @apiSuccess {String} msg  结果信息
  * @apiSuccess {String} data  返回数据
  */
-Router.post('/findUnitCommunity', (req, res) => {
-    let {
-        _id
-    } = req.body;
-    let obj = {};
-    Community.find({
-            _id
-        })
-        .then((data) => {
-            obj.total = data.length;
-            obj.communitylist = data;
-            res.send({
-                err: 0,
-                msg: '查询成功',
-                data: obj
-            })
-        })
-        .catch((err) => {
-            console.log(err)
-            res.send({
-                err: -1,
-                msg: '查询错误',
-                data: null
-            })
-        })
-})
-
-
-
+Router.post("/findUnitCommunity", (req, res) => {
+  let {
+    _id
+  } = req.body;
+  let obj = {};
+  Community.find({
+      _id,
+    })
+    .then((data) => {
+      obj.total = data.length;
+      obj.communitylist = data;
+      res.send({
+        err: 0,
+        msg: "查询成功",
+        data: obj,
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.send({
+        err: -1,
+        msg: "查询错误",
+        data: null,
+      });
+    });
+});
 
 /**
  * @api {post} /community/findCommunityByKw findCommunityByKw
@@ -197,84 +232,93 @@ Router.post('/findUnitCommunity', (req, res) => {
  * @apiSuccess {String} msg  结果信息
  * @apiSuccess {String} data  返回数据
  */
-Router.post('/findCommunityByKw', (req, res) => {
-
-    let {
-        keyword,
-        pageSize,
-        page
-    } = req.body;
-    let obj = {};
-    // Goods.find({name:{$regex:'肉'}})
-    Community.find({
-            $or: [{
-                communityname: {
-                    $regex: keyword
-                }
-            }, {
-                typeid: {
-                    $regex: keyword
-                }
-            }, {
-                author: {
-                    $regex: keyword
-                }
-            }, {
-                publish: {
-                    $regex: keyword
-                }
-            }, {
-                communitydesc: {
-                    $regex: keyword
-                }
-            }]
+Router.post("/findCommunityByKw", (req, res) => {
+  let {
+    keyword,
+    pageSize,
+    page
+  } = req.body;
+  let obj = {};
+  // Goods.find({name:{$regex:'肉'}})
+  Community.find({
+      $or: [{
+          communityname: {
+            $regex: keyword,
+          },
+        },
+        {
+          typeid: {
+            $regex: keyword,
+          },
+        },
+        {
+          author: {
+            $regex: keyword,
+          },
+        },
+        {
+          publish: {
+            $regex: keyword,
+          },
+        },
+        {
+          communitydesc: {
+            $regex: keyword,
+          },
+        },
+      ],
+    })
+    .then((data) => {
+      // 获取总条数
+      obj.total = data.length;
+      return Community.find({
+          $or: [{
+              communityname: {
+                $regex: keyword,
+              },
+            },
+            {
+              typeid: {
+                $regex: keyword,
+              },
+            },
+            {
+              author: {
+                $regex: keyword,
+              },
+            },
+            {
+              publish: {
+                $regex: keyword,
+              },
+            },
+            {
+              communitydesc: {
+                $regex: keyword,
+              },
+            },
+          ],
         })
-        .then((data) => {
-            // 获取总条数
-            obj.total = data.length;
-            return Community.find({
-                $or: [{
-                    communityname: {
-                        $regex: keyword
-                    }
-                }, {
-                    typeid: {
-                        $regex: keyword
-                    }
-                }, {
-                    author: {
-                        $regex: keyword
-                    }
-                }, {
-                    publish: {
-                        $regex: keyword
-                    }
-                }, {
-                    communitydesc: {
-                        $regex: keyword
-                    }
-                }]
-            }).limit(Number(pageSize)).skip((Number(page) - 1) * Number(pageSize));
-        })
-        .then((data) => {
-            obj.communitylist = data;
-            res.send({
-                err: 0,
-                msg: 'find success',
-                data: obj
-            })
-        })
-        .catch((err) => {
-            console.log(err);
-            res.send({
-                err: -1,
-                msg: 'find error',
-                data: null
-            })
-        })
-
-})
-
+        .limit(Number(pageSize))
+        .skip((Number(page) - 1) * Number(pageSize));
+    })
+    .then((data) => {
+      obj.communitylist = data;
+      res.send({
+        err: 0,
+        msg: "find success",
+        data: obj,
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.send({
+        err: -1,
+        msg: "find error",
+        data: null,
+      });
+    });
+});
 
 /**
  * @api {post} /community/updateCommunityInfo updateCommunityInfo
@@ -296,30 +340,49 @@ Router.post('/findCommunityByKw', (req, res) => {
  * @apiSuccess {String} msg  结果信息
  * @apiSuccess {String} data  返回数据
  */
-Router.post('/updateCommunityInfo', (req, res) => {
-    let { name, createId, createName, teacher, createTime, typeId, desc, order, status } = req.body;
-    Community.updateOne({
-            _id: req.body._id
-        }, {
-            $set: { name, createId, createName, teacher, createTime, typeId, desc, order, status }
-        })
-        .then((data) => {
-            res.send({
-                err: 0,
-                msg: '修改成功',
-                data: null
-            })
-        })
-        .catch((err) => {
-            console.log(err);
-            res.send({
-                err: -1,
-                msg: '修改失败',
-                data: null
-            })
-        })
+Router.post("/updateCommunityInfo", (req, res) => {
+  let {
+    name,
+    creatorUserName,
+    creatorNickName,
+    teacher,
+    createTime,
+    updateTime,
+    type,
+    desc,
+    status,
+  } = req.body;
+  Community.updateOne({
+      _id: req.body._id,
+    }, {
+      $set: {
+        name,
+        creatorUserName,
+        creatorNickName,
+        teacher,
+        createTime,
+        updateTime,
+        type,
+        desc,
+        status,
+      },
+    })
+    .then((data) => {
+      res.send({
+        err: 0,
+        msg: "修改成功",
+        data: null,
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.send({
+        err: -1,
+        msg: "修改失败",
+        data: null,
+      });
+    });
 });
-
 
 /**
  * @api {post} /community/removeCommunityInfo removeCommunityInfo
@@ -332,29 +395,27 @@ Router.post('/updateCommunityInfo', (req, res) => {
  * @apiSuccess {String} msg  结果信息
  * @apiSuccess {String} data  返回数据
  */
-Router.post('/removeCommunityInfo', (req, res) => {
-    let id = req.body._id;
-    console.log(id)
-    Community.deleteOne({
-            _id: id
-        })
-        .then((data) => {
-            res.send({
-                err: 0,
-                msg: 'delete success',
-                data: null
-            })
-        })
-        .catch((err) => {
-            console.log(err);
-            res.send({
-                err: -1,
-                msg: 'delete error',
-                data: null
-            })
-        })
-
+Router.post("/removeCommunityInfo", (req, res) => {
+  let id = req.body._id;
+  console.log(id);
+  Community.deleteOne({
+      _id: id,
+    })
+    .then((data) => {
+      res.send({
+        err: 0,
+        msg: "delete success",
+        data: null,
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.send({
+        err: -1,
+        msg: "delete error",
+        data: null,
+      });
+    });
 });
-
 
 module.exports = Router;

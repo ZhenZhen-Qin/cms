@@ -78,7 +78,6 @@ const OperationModal = (props) => {
         <Form.Item
           name="name"
           label="社团名称"
-          initialValue="111"
           rules={[
             {
               required: true,
@@ -108,9 +107,8 @@ const OperationModal = (props) => {
           />
         </Form.Item> */}
         <Form.Item
-          name="typeId"
+          name="type"
           label="社团分类"
-          initialValue="222"
           rules={[
             {
               required: true,
@@ -123,7 +121,6 @@ const OperationModal = (props) => {
         <Form.Item
           name="desc"
           label="社团简介"
-          initialValue="333333333"
           rules={[
             {
               message: '请输入至少五个字符的社团简介！',
@@ -136,7 +133,6 @@ const OperationModal = (props) => {
         <Form.Item
           name="teacher"
           label="社团指导老师"
-          initialValue="44"
           rules={[
             {
               required: true,

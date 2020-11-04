@@ -6,6 +6,7 @@ const Model = {
   },
   effects: {
     *submit({ payload }, { call, put }) {
+      console.log(payload)
       const response = yield call(fakeRegister, payload);
       yield put({
         type: 'registerHandle',

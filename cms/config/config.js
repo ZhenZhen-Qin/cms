@@ -80,16 +80,10 @@ export default defineConfig({
                 redirect: '/list/community-list',
               },
               {
-                name: '我管理的社团',
+                name: '社团列表',
                 icon: 'smile',
                 path: '/list/community-list',
                 component: './list/community-list',
-              },
-              {
-                name: '我创建的社团',
-                icon: 'smile',
-                path: '/list/create-community',
-                component: './list/create-community',
               },
               {
                 name: '社团活动列表',

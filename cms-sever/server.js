@@ -29,7 +29,7 @@ app.use(express.json());
 // 分发路由
 // 登录相关
 const adminRouter = require('./router/userAdmin.js');
-app.use("/user",adminRouter);
+app.use("/api/user",adminRouter);
 
 // 社团相关
 const communityRouter = require('./router/community.js');

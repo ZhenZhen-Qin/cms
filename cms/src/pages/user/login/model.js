@@ -2,6 +2,7 @@ import { history } from 'umi';
 import { message } from 'antd';
 import { parse } from 'qs';
 import { fakeAccountLogin, getFakeCaptcha } from './service';
+import { LOCAL_STORAGE_KEYS } from '../../../utils/enum';
 export function getPageQuery() {
   return parse(window.location.href.split('?')[1]);
 }
@@ -28,7 +29,7 @@ const Model = {
   effects: {
     *login({ payload }, { call, put }) {
       const response = yield call(fakeAccountLogin, payload);
-      console.log(response)
+      console.log(response);
       yield put({
         type: 'changeLoginStatus',
         payload: response,
@@ -36,6 +37,15 @@ const Model = {
 
       if (response.status === 'ok') {
         message.success('登录成功！');
+        // 暂存用户昵称和用户名
+        window._USER_INFO = {
+          userName: response.userName,
+          nickName: response.nickName,
+        };
+
+        localStorage.setItem(LOCAL_STORAGE_KEYS.USER_NAME, response.userName);
+        localStorage.setItem(LOCAL_STORAGE_KEYS.NICK_NAME, response.nickName);
+
         const urlParams = new URL(window.location.href);
         const params = getPageQuery();
         let { redirect } = params;
@@ -66,7 +76,11 @@ const Model = {
   reducers: {
     changeLoginStatus(state, { payload }) {
       setAuthority(payload.currentAuthority);
-      return { ...state, status: payload.status, type: payload.type };
+      return {
+        ...state,
+        status: payload.status,
+        type: payload.type,
+      };
     },
   },
 };

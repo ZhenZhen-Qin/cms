@@ -1,12 +1,12 @@
-const express = require("express");
+const express = require('express');
 const Router = express.Router();
-const querystring = require("querystring");
-var bodyParser = require("body-parser");
+const querystring = require('querystring');
+var bodyParser = require('body-parser');
 Router.use(bodyParser.urlencoded({
     extended: false
 }));
 
-const User = require("../mongo/model/user.js");
+const User = require('../mongo/model/user.js');
 
 /**
  * @api {post} /user/userLogin userLogin
@@ -20,34 +20,37 @@ const User = require("../mongo/model/user.js");
  * @apiSuccess {String} msg  结果信息
  * @apiSuccess {String} data  返回数据
  */
-Router.post("/userLogin", (req, res) => {
+Router.post('/login', (req, res) => {
     console.log(req.body);
     var dataObj = req.body;
 
     User.find({
             $and: [{
                 $or: [{
-                    "userName": dataObj["userName"]
+                    'userName': dataObj['userName']
                 }]
             }, {
-                "password": dataObj["password"]
+                'password': dataObj['password']
             }]
         })
         .then((data) => {
             console.log(data);
-            if (data[0]["userName"] == dataObj["userName"] && data[0]["password"] == dataObj["password"]) {
+            if (data[0]['userName'] == dataObj['userName'] && data[0]['password'] == dataObj['password']) {
                 res.send({
-                    currentAuthority: 'admin',
+                    currentAuthority: data[0].currentAuthority,
                     status: 'ok',
-                    type: 'account'
+                    type: 'account',
+                    userName: data[0].userName,
+                    nickName: data[0].nickName,
                 });
             }
         })
         .catch((err) => {
             console.log(err);
             res.send({
-                status: 'error',
-                msg: '账号或密码错误，请重试'
+                currentAuthority: "guest",
+                status: "error",
+                type: "account",
             });
         })
 });
@@ -66,25 +69,34 @@ Router.post("/userLogin", (req, res) => {
  * @apiSuccess {String} msg  结果信息
  * @apiSuccess {String} data  返回数据
  */
-Router.post("/addUserInfo", (req, res) => {
-    let status = req.body.status ? req.body.status : 1;
+Router.post('/register', (req, res) => {
+    const {
+        userName,
+        nickName,
+        password,
+        mobile,
+        currentAuthority
+    } = req.body
     User.insertMany({
-            email: req.body.email,
-            uname: req.body.uname,
-            pwd: req.body.pwd,
-            status: status
+            userName,
+            nickName,
+            password,
+            mobile,
+            currentAuthority
         })
         .then((data) => {
-            console.log(data);
             res.send({
-                err: 0,
-                msg: 'addSuccess',
-                data: null
+                currentAuthority,
+                status: 'ok',
             })
         })
         .catch((err) => {
             console.log(err);
-            res.send("fail")
+            res.send({
+                err: -1,
+                msg: '注册失败',
+                data: null
+            })
         })
 });
 
@@ -101,13 +113,13 @@ Router.post("/addUserInfo", (req, res) => {
  * @apiSuccess {String} msg  结果信息
  * @apiSuccess {String} data  返回数据
  */
-Router.post("/findUserInfo", (req, res) => {
+Router.post('/findUserInfo', (req, res) => {
     let uname = req.body.uname;
     User.find({
             $or: [{
-                "uname": uname
+                'uname': uname
             }, {
-                "email": uname
+                'email': uname
             }]
         })
         .then((data) => {
@@ -120,7 +132,7 @@ Router.post("/findUserInfo", (req, res) => {
         })
         .catch((err) => {
             console.log(err);
-            res.send("fail")
+            res.send('fail')
         })
 });
 
@@ -147,7 +159,7 @@ let check = {};
  * @apiSuccess {String} data  返回数据
  *
  */
-Router.post("/getCode", (req, res) => {
+Router.post('/getCode', (req, res) => {
     console.log(req.body);
     let mail = req.body.mail;
     if (!mail) {

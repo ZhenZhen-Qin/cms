@@ -29,7 +29,7 @@ const Register = ({ submitting, dispatch, userAndregister }) => {
       return;
     }
 
-    const account = form.getFieldValue('stuCode');
+    const account = form.getFieldValue('userName');
 
     if (userAndregister.status === 'ok') {
       message.success('注册成功！');
@@ -75,10 +75,15 @@ const Register = ({ submitting, dispatch, userAndregister }) => {
     return 'poor';
   };
 
+  // 登录接口信息
   const onFinish = (values) => {
     dispatch({
       type: 'userAndregister/submit',
-      payload: { ...values, prefix },
+      payload: { 
+        ...values, 
+        prefix,
+        currentAuthority:'user', // 刚注册的用户默认是超级管理员
+       },
     });
   };
 
@@ -139,10 +144,10 @@ const Register = ({ submitting, dispatch, userAndregister }) => {
 
   return (
     <div className={styles.main}>
-      <h3>注册</h3>
+      <h3>注册账户</h3>
       <Form form={form} name="UserRegister" onFinish={onFinish}>
         <FormItem
-          name="stuCode"
+          name="userName"
           rules={[
             {
               required: true,
@@ -151,6 +156,17 @@ const Register = ({ submitting, dispatch, userAndregister }) => {
           ]}
         >
           <Input size="large" placeholder="请输入学号" />
+        </FormItem>
+        <FormItem
+          name="nickName"
+          rules={[
+            {
+              required: true,
+              message: '请输入姓名',
+            }
+          ]}
+        >
+          <Input size="large" placeholder="请输入姓名" />
         </FormItem>
         <Popover
           getPopupContainer={(node) => {
