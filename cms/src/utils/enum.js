@@ -10,17 +10,28 @@ export const COMMUNITY_TYPE = {
   other_categories: '其他类',
 }
 
+
 // 社团筛选 字段
 export const COMMUNITY_SCREEN = {
-  ALL:'0', // 全部
-  CREATE:'1', // 筛选“我创建的社团”
-  MANAGE:'2', // 筛选“我管理的社团"
+  ALL: '0', // 全部
+  CREATE: '1', // 筛选“我创建的社团”
+  MANAGE: '2', // 筛选“我管理的社团"
 }
 
 
 
 // localStorage 的key 字段 
 export const LOCAL_STORAGE_KEYS = {
-  USER_NAME:'userName', // 用于登录的用户名
-  NICK_NAME:'nickName', // 昵称
+  USER_NAME: 'userName', // 用于登录的用户名
+  NICK_NAME: 'nickName', // 昵称
+}
+
+
+
+// 审核状态
+export const COMMUNITY_STATUS = {
+  CANCEL: 0, // 注销
+  IN_REVIEW: 1, // 审核中
+  PASS: 2, // 审核通过
+  NO_PASS: 3, // 审核不通过
 }

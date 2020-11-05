@@ -71,18 +71,10 @@ Router.post('/login', (req, res) => {
  */
 Router.post('/register', (req, res) => {
     const {
-        userName,
-        nickName,
-        password,
-        mobile,
-        currentAuthority
+        userName,nickName,password,mobile,currentAuthority,college,specializedSubject,gender
     } = req.body
     User.insertMany({
-            userName,
-            nickName,
-            password,
-            mobile,
-            currentAuthority
+        userName,nickName,password,mobile,currentAuthority,college,specializedSubject,gender
         })
         .then((data) => {
             res.send({
@@ -99,7 +91,6 @@ Router.post('/register', (req, res) => {
             })
         })
 });
-
 
 
 /**

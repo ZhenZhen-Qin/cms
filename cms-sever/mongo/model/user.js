@@ -6,6 +6,9 @@ let userSchema = mongoose.Schema({
     nickName:{type:String,required:true},  // 用于显示的昵称
     password:{type:String,required:true},
     mobile:{type:String}, // 手机号
+    college:{type:String}, // 所在学院 计算机科学与工程学院
+    specializedSubject:{type:String}, // 所属专业，如 软件工程二班
+    gender:{type:String}, // 性别 男male 女female
     // 枚举字段（user：普通用户，admin：管理员，sysadmin：超级管理员）
     currentAuthority:{type:String,default:"user"}  // 当前权限 默认是管理员
 });

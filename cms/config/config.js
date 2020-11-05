@@ -86,104 +86,79 @@ export default defineConfig({
                 component: './list/community-list',
               },
               {
-                name: '社团活动列表',
-                icon: 'smile',
-                path: '/list/active-list',
-                component: './list/active-list',
-              },
-              {
-                name: 'basic-list',
-                icon: 'smile',
-                path: '/list/basic-list',
-                component: './list/basic-list',
-              },
-            ],
-          },
-          {
-            // 系统管理员 审核社团 路由设置
-            path: '/audit',
-            icon: 'table',
-            name: '社团申请审核',
-            // authority: ['sysadmin'],
-            path: '/audit',
-            component: './audit',
-          },
-          {
-            // 社团成员管理 路由设置
-            path: '/member',
-            icon: 'table',
-            name: '社团成员管理',
-            routes: [{
-                path: '/',
-                redirect: '/member/member-list',
-              },
-              {
                 name: '社团成员列表',
                 icon: 'smile',
-                path: '/member/member-list',
-                component: './member/member-list',
+                path: '/list/member-list',
+                component: './list/member-list',
+              },
+              {
+                name: '社团审核列表',
+                icon: 'smile',
+                path: '/list/audit-list',
+                component: './list/audit-list',
               },
             ],
           },
-
           {
-            // 管理员管理 路由设置
-            path: '/admin',
+            // 活动管理 路由设置
+            path: '/active',
             icon: 'table',
-            name: '管理员管理',
+            name: '活动管理',
             routes: [{
                 path: '/',
-                redirect: '/admin/admin-list',
+                redirect: '/active/active-list',
               },
               {
-                name: '管理员列表',
+                name: '活动列表',
                 icon: 'smile',
-                path: '/admin/admin-list',
-                component: './admin/admin-list',
-              },
-            ],
-          },
-
-          {
-            // 普通用户可见权限 路由设置
-            path: '/student',
-            icon: 'table',
-            name: '浏览',
-            routes: [{
-                path: '/',
-                redirect: '/student/add-community-list',
-              },
-              {
-                name: '所有社团信息',
-                icon: 'smile',
-                path: '/student/add-community-list',
-                component: './student/add-community-list',
+                path: '/active/active-list',
+                component: './active/active-list',
                 routes: [{
-                    path: '/student/add-community-list',
-                    redirect: '/student/add-community-list/articles',
+                    path: '/active/active-list',
+                    redirect: '/active/active-list/articles',
                   },
                   {
-                    name: '社团列表',
+                    name: '活动列表',
                     icon: 'smile',
-                    path: '/student/add-community-list/projects',
-                    component: './student/add-community-list/projects',
+                    path: '/active/active-list/projects',
+                    component: './active/active-list/projects',
                   },
                   {
                     name: '活动资讯',
                     icon: 'smile',
-                    path: '/student/add-community-list/articles',
-                    component: './student/add-community-list/articles',
+                    path: '/active/active-list/articles',
+                    component: './active/active-list/articles',
                   },
                   {
                     name: 'applications',
                     icon: 'smile',
-                    path: '/student/add-community-list/applications',
-                    component: './student/add-community-list/applications',
+                    path: '/active/active-list/applications',
+                    component: './active/active-list/applications',
                   },
                 ],
               },
             ],
           },
+
+          {
+            path: '/user-manage',
+            icon: 'table',
+            name: '用户管理',
+            Routes: ['src/pages/Authorized'],
+            authority: ['admin', 'user'],
+            routes: [{
+                path: '/',
+                redirect: '/user/user-manage-list',
+              },
+              {
+                name: '社团列表',
+                icon: 'smile',
+                path: '/user/user-manage-list',
+                component: './user/user-list',
+              },
+            ],
+          },
+
           // {
           //   path: '/dashboard',
           //   name: 'dashboard',

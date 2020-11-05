@@ -3,6 +3,7 @@ import { Avatar, Menu, Spin } from 'antd';
 import React from 'react';
 import { history, connect } from 'umi';
 import HeaderDropdown from '../HeaderDropdown';
+import {LOCAL_STORAGE_KEYS} from '../../utils/enum';
 import styles from './index.less';
 
 class AvatarDropdown extends React.Component {
@@ -25,11 +26,15 @@ class AvatarDropdown extends React.Component {
   };
 
   render() {
+    const currentUser = {
+      avatar: 'https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=1723223319,3840103545&fm=11&gp=0.jpg',
+      name: localStorage.getItem(LOCAL_STORAGE_KEYS.NICK_NAME),
+    };
     const {
-      currentUser = {
-        avatar: '',
-        name: '',
-      },
+      // currentUser = {
+      //   avatar: '',
+      //   name: localStorage.getItem(LOCAL_STORAGE_KEYS.NICK_NAME),
+      // },
       menu,
     } = this.props;
     const menuHeaderDropdown = (

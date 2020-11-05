@@ -1,7 +1,7 @@
 import { message } from 'antd';
 import { getCommunityList,addCommunityInfo } from './service';
 
-import { extend, getTableSorter } from '../../utils/utils';
+import { extend, getTableSorter } from '../../../utils/utils';
 
 const stateData = {
   list: [],
@@ -10,7 +10,7 @@ const stateData = {
 };
 
 const Model =  {
-  namespace: 'audit',
+  namespace: 'user-list',
   state: {},
   effects: {
     // 初始化state

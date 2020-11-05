@@ -1,5 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Button, Divider, message, Tooltip, Input, Drawer, Radio } from 'antd';
+import { Button, Divider, message, Input, Drawer, Radio } from 'antd';
 import React, { useState, useRef } from 'react';
 import moment from 'moment';
 import { PageContainer, FooterToolbar } from '@ant-design/pro-layout';
@@ -7,7 +7,7 @@ import ProTable from '@ant-design/pro-table';
 import ProDescriptions from '@ant-design/pro-descriptions';
 import CreateForm from './components/CreateForm';
 import { communityTypeSelect } from '../../../utils/common';
-import { COMMUNITY_SCREEN, LOCAL_STORAGE_KEYS } from '../../../utils/enum';
+import { COMMUNITY_SCREEN, COMMUNITY_STATUS, LOCAL_STORAGE_KEYS } from '../../../utils/enum';
 import UpdateForm from './components/UpdateForm';
 import OperationModal from './components/OperationModal';
 
@@ -99,17 +99,17 @@ const TableList = () => {
           status: 1,
           createTime: Date.now(),
         };
-    options.creatorUserName = USER_NAME;
-    options.creatorNickName = NICK_NAME;
+        options.creatorUserName = USER_NAME;
+        options.creatorNickName = NICK_NAME;
 
     try {
       await addCommunityInfo(options);
       hide();
-      message.success('添加成功');
+      message.success('操作成功');
       return true;
     } catch (error) {
       hide();
-      message.error('添加失败请重试！');
+      message.error('操作失败，请重试');
       return false;
     }
   };
@@ -122,7 +122,7 @@ const TableList = () => {
 
   const columns = [
     {
-      align: 'center',
+      align:'center',
       title: '社团ID',
       dataIndex: '_id',
       hideInForm: true,
@@ -195,50 +195,44 @@ const TableList = () => {
       },
     },
     {
-      align: 'center',
-      width: 180,
+      align:'center',
+      width:180,
       title: '创建时间',
       dataIndex: 'createTime',
-      render: (text) => moment(parseInt(text)).format('YYYY-MM-DD HH:mm:ss'),
+      render:(text)=>moment(parseInt(text)).format('YYYY-MM-DD HH:mm:ss')
     },
     {
-      align: 'center',
+      align:'center',
       title: '创建者',
       dataIndex: 'creatorNickName',
-      render: (text, record) => `${text}（${record.creatorUserName}）`,
+      render:(text,record)=>`${text}（${record.creatorUserName}）`
     },
     {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
-      tip: '只有社团管理员才可以编辑社团',
       render: (_, record) => (
         <>
-          <Button
-            type="link"
-            disabled={record.creatorUserName !== LOCAL_STORAGE_KEYS.USER_NAME}
+        {console.log(record.status , COMMUNITY_STATUS.PASS)}
+          <Button type="link" disabled={record.status === COMMUNITY_STATUS.PASS}
             onClick={() => {
               handleEdit(record);
               // setStepFormValues(record);
             }}
           >
-            编辑
+            审核
           </Button>
-          <Divider type="vertical" />
-          <a href="" style={{ color: record.status === 2 ? '#1890ff' : '#999' }}>
-            注销
-          </a>
         </>
       ),
     },
   ];
 
   // 处理社团筛选（全部，我创建的社团或者我管理的社团）
-  const handleSizeChange = (e) => {
-    console.log(e.target.value);
+  const handleSizeChange = (e)=>{
+    console.log(e.target.value)
     e && e.target && e.target.value && setCommunityScreen(e.target.value);
     actionRef.current.reload();
-  };
+  }
 
   return (
     <PageContainer>
@@ -267,34 +261,7 @@ const TableList = () => {
         search={{
           labelWidth: 120,
         }}
-        toolBarRender={() => [
-          <Radio.Group value={communityScreen} onChange={handleSizeChange}>
-            <Radio.Button
-              value={COMMUNITY_SCREEN.ALL}
-              type={communityScreen === COMMUNITY_SCREEN.ALL ? 'primary' : 'default'}
-            >
-              全部
-            </Radio.Button>
-            <Radio.Button
-              value={COMMUNITY_SCREEN.CREATE}
-              type={communityScreen === COMMUNITY_SCREEN.CREATE ? 'primary' : 'default'}
-            >
-              我创建的
-            </Radio.Button>
-            <Radio.Button
-              value={COMMUNITY_SCREEN.MANAGE}
-              type={communityScreen === COMMUNITY_SCREEN.MANAGE ? 'primary' : 'default'}
-            >
-              我管理的
-            </Radio.Button>
-          </Radio.Group>,
-          <Button type="primary" onClick={() => handleModalVisible(true)}>
-            <PlusOutlined /> 新建
-          </Button>,
-        ]}
-        request={(params, sorter, filter) =>
-          getCommunityList({ ...params, sorter, filter, communityScreen, userName: USER_NAME })
-        }
+        request={(params, sorter, filter) => getCommunityList({ ...params, sorter, filter, communityScreen, userName:USER_NAME })}
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => setSelectedRows(selectedRows),
@@ -331,26 +298,6 @@ const TableList = () => {
           <Button type="primary">批量审批</Button>
         </FooterToolbar>
       )}
-
-      {/* <CreateForm onCancel={() => handleModalVisible(false)} modalVisible={createModalVisible}>
-        <ProTable
-          current={current}
-          onSubmit={async (value) => {
-            const success = await handleAdd(value);
-
-            if (success) {
-              handleModalVisible(false);
-
-              if (actionRef.current) {
-                actionRef.current.reload();
-              }
-            }
-          }}
-          rowKey="key"
-          type="form"
-          columns={columns}
-        />
-      </CreateForm> */}
       {stepFormValues && Object.keys(stepFormValues).length ? (
         <UpdateForm
           onSubmit={async (value) => {

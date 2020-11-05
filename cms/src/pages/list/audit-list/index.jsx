@@ -1,18 +1,32 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Button, Divider, message, Input, Drawer } from 'antd';
+import { Button, Divider, message, Input, Drawer, Radio } from 'antd';
 import React, { useState, useRef } from 'react';
-import { connect, FormattedMessage, formatMessage } from 'umi';
+import moment from 'moment';
 import { PageContainer, FooterToolbar } from '@ant-design/pro-layout';
 import ProTable from '@ant-design/pro-table';
 import ProDescriptions from '@ant-design/pro-descriptions';
 import CreateForm from './components/CreateForm';
+import { communityTypeSelect } from '../../../utils/common';
+import { COMMUNITY_SCREEN, COMMUNITY_STATUS, LOCAL_STORAGE_KEYS } from '../../../utils/enum';
 import UpdateForm from './components/UpdateForm';
-import { getCommunityList,queryRule, updateRule, addRule, removeRule } from './service';
+import OperationModal from './components/OperationModal';
+
+const USER_NAME = localStorage.getItem(LOCAL_STORAGE_KEYS.USER_NAME);
+const NICK_NAME = localStorage.getItem(LOCAL_STORAGE_KEYS.NICK_NAME);
+
+import {
+  getCommunityList,
+  addCommunityInfo,
+  queryRule,
+  updateRule,
+  addRule,
+  removeRule,
+} from './service';
+
 /**
  * 添加节点
  * @param fields
  */
-
 
 /**
  * 更新节点
@@ -60,32 +74,72 @@ const handleRemove = async (selectedRows) => {
   }
 };
 
-const TableList = ({ submitting, dispatch }) => {
+const TableList = () => {
   const [createModalVisible, handleModalVisible] = useState(false);
   const [updateModalVisible, handleUpdateModalVisible] = useState(false);
   const [stepFormValues, setStepFormValues] = useState({});
   const actionRef = useRef();
   const [row, setRow] = useState();
+  const [current, setCurrent] = useState();
+  const [communityScreen, setCommunityScreen] = useState(COMMUNITY_SCREEN.ALL);
   const [selectedRowsState, setSelectedRows] = useState([]);
+
+  // 保存
+  const handleAdd = async (fields) => {
+    const hide = message.loading('正在添加');
+    // 社团状态 0:已注销，1:审核中 2:审核通过，3:审核不通过
+    let options = current
+      ? {
+          ...current,
+          ...fields,
+          updateTime: Date.now(),
+        }
+      : {
+          ...fields,
+          status: 1,
+          createTime: Date.now(),
+        };
+        options.creatorUserName = USER_NAME;
+        options.creatorNickName = NICK_NAME;
+
+    try {
+      await addCommunityInfo(options);
+      hide();
+      message.success('操作成功');
+      return true;
+    } catch (error) {
+      hide();
+      message.error('操作失败，请重试');
+      return false;
+    }
+  };
+
+  // 点击编辑
+  const handleEdit = (record) => {
+    handleModalVisible(true);
+    setCurrent(record);
+  };
+
   const columns = [
     {
+      align:'center',
       title: '社团ID',
-      dataIndex: 'id',
-      tip: '社团ID是唯一的 key',
+      dataIndex: '_id',
       hideInForm: true,
+      ellipsis: true,
     },
     {
       title: '社团名称',
       dataIndex: 'name',
+      tip: '社团名称是唯一的',
       formItemProps: {
         rules: [
           {
             required: true,
-            message: '社团名称为必填项',
+            message: '社团名称不能为空',
           },
         ],
       },
-      sorter: true,
     },
     {
       title: '社团类别',
@@ -94,10 +148,11 @@ const TableList = ({ submitting, dispatch }) => {
         rules: [
           {
             required: true,
-            message: '社团类别为必填项',
+            message: '社团类别不能为空',
           },
         ],
       },
+      valueEnum: communityTypeSelect,
     },
     {
       title: '社团指导老师',
@@ -106,57 +161,51 @@ const TableList = ({ submitting, dispatch }) => {
         rules: [
           {
             required: true,
-            message: '社团指导老师为必填项',
+            message: '社团指导老师不能为空',
           },
         ],
       },
     },
     {
-      title: '描述',
+      title: '社团简介',
       dataIndex: 'desc',
       valueType: 'textarea',
     },
     {
-      title: '状态',
+      title: '社团状态',
       dataIndex: 'status',
+      hideInForm: true,
       valueEnum: {
         0: {
-          text: '关闭',
+          text: '已注销',
           status: 'Default',
         },
         1: {
-          text: '运行中',
+          text: '审核中',
           status: 'Processing',
         },
         2: {
-          text: '已上线',
+          text: '审核通过',
           status: 'Success',
         },
         3: {
-          text: '异常',
+          text: '审核不通过',
           status: 'Error',
         },
       },
     },
     {
-      title: '上次调度时间',
-      dataIndex: 'updatedAt',
-      sorter: true,
-      valueType: 'dateTime',
-      hideInForm: true,
-      renderFormItem: (item, { defaultRender, ...rest }, form) => {
-        const status = form.getFieldValue('status');
-
-        if (`${status}` === '0') {
-          return false;
-        }
-
-        if (`${status}` === '3') {
-          return <Input {...rest} placeholder="请输入异常原因！" />;
-        }
-
-        return defaultRender(item);
-      },
+      align:'center',
+      width:180,
+      title: '创建时间',
+      dataIndex: 'createTime',
+      render:(text)=>moment(parseInt(text)).format('YYYY-MM-DD HH:mm:ss')
+    },
+    {
+      align:'center',
+      title: '创建者',
+      dataIndex: 'creatorNickName',
+      render:(text,record)=>`${text}（${record.creatorUserName}）`
     },
     {
       title: '操作',
@@ -164,86 +213,55 @@ const TableList = ({ submitting, dispatch }) => {
       valueType: 'option',
       render: (_, record) => (
         <>
-          <a
+        {console.log(record.status , COMMUNITY_STATUS.PASS)}
+          <Button type="link" disabled={record.status === COMMUNITY_STATUS.PASS}
             onClick={() => {
-              handleUpdateModalVisible(true);
-              setStepFormValues(record);
+              handleEdit(record);
+              // setStepFormValues(record);
             }}
           >
-            配置
-          </a>
-          <Divider type="vertical" />
-          <a href="">订阅警报</a>
+            审核
+          </Button>
         </>
       ),
     },
   ];
 
-
-  // // 社团列表
-  // const getAuditList = (params) => {
-  //   console.log(params);
-  //   dispatch({
-  //     type: 'audit/fetch',
-  //     payload: params,
-  //   }).then((res) => {
-  //     console.log(res);
-  //   });
-  // };
-
-  // 新增
-  const handleAdd = async (fields) => {
-  const hide = message.loading('正在添加');
-
-  console.log(fields)
-
-  let params = {
-    cmId:'',
-    name:fields.name,
-    teacher:fields.teacher,
-    creatorId:'',
-    creatorName:'',
-    createTime:'',
-    typeId:fields.type,
-    desc:fields.desc,
-    order:'',
-    status:''
+  // 处理社团筛选（全部，我创建的社团或者我管理的社团）
+  const handleSizeChange = (e)=>{
+    console.log(e.target.value)
+    e && e.target && e.target.value && setCommunityScreen(e.target.value);
+    actionRef.current.reload();
   }
-
-  try {
-    await dispatch({
-      type: 'audit/addCommunityInfo',
-      payload: {...params},
-    }).then((res) => {
-      console.log(res);
-    });
-
-    hide();
-    message.success('添加成功');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('添加失败请重试！');
-    return false;
-  }
-};
 
   return (
     <PageContainer>
+      <OperationModal
+        // done={done}
+        current={current}
+        visible={createModalVisible}
+        // onDone={handleDone}
+        onCancel={() => handleModalVisible(false)}
+        onSubmit={async (value) => {
+          const success = await handleAdd(value);
+
+          if (success) {
+            handleModalVisible(false);
+
+            if (actionRef.current) {
+              actionRef.current.reload();
+            }
+          }
+        }}
+      />
       <ProTable
-        headerTitle="社团申请列表"
+        headerTitle="查询表格"
         actionRef={actionRef}
-        rowKey="key"
+        rowKey="_id"
         search={{
           labelWidth: 120,
         }}
-        toolBarRender={() => [
-          <Button type="primary" onClick={() => handleModalVisible(true)}>
-            <PlusOutlined /> 新建
-          </Button>,
-        ]}
-        request={(params, sorter, filter) => getCommunityList({ ...params, sorter, filter })}
-        // request={(params, sorter, filter) => queryRule({ ...params, sorter, filter })}
+        request={(params, sorter, filter) => getCommunityList({ ...params, sorter, filter, communityScreen, userName:USER_NAME })}
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => setSelectedRows(selectedRows),
@@ -280,27 +298,6 @@ const TableList = ({ submitting, dispatch }) => {
           <Button type="primary">批量审批</Button>
         </FooterToolbar>
       )}
-      {/* 创建社团 */}
-      <CreateForm onCancel={() => handleModalVisible(false)} modalVisible={createModalVisible}>
-        <ProTable
-          onSubmit={async (value) => {
-            const success = await handleAdd(value);
-
-            console.log(success);
-
-            if (success) {
-              handleModalVisible(false);
-
-              if (actionRef.current) {
-                actionRef.current.reload();
-              }
-            }
-          }}
-          rowKey="key"
-          type="form"
-          columns={columns}
-        />
-      </CreateForm>
       {stepFormValues && Object.keys(stepFormValues).length ? (
         <UpdateForm
           onSubmit={async (value) => {
@@ -350,7 +347,4 @@ const TableList = ({ submitting, dispatch }) => {
   );
 };
 
-export default connect(({ audit, loading }) => ({
-  audit,
-  submitting: loading.effects['audit/submitAdvancedForm'],
-}))(TableList);
+export default TableList;

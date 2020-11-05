@@ -28,7 +28,7 @@ app.use(express.json());
 
 // 分发路由
 // 登录相关
-const adminRouter = require('./router/userAdmin.js');
+const adminRouter = require('./router/user.js');
 app.use("/api/user",adminRouter);
 
 // 社团相关

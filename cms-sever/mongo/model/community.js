@@ -12,7 +12,8 @@ let communitySchema = mongoose.Schema({
     updateTime:{type:String}, // 社团修改时间
     type:{type:String}, // 社团类别
     desc:{type:String}, // 社团描述
-    status:{type:Number} // 社团状态 0:已注销，1:审核中 2:审核通过，3:审核不通过
+    status:{type:Number}, // 社团状态 0:已注销，1:审核中 2:审核通过，3:审核不通过
+    reason:{type:String}, // 审核理由
 });
 
 //注意：数据库的集合名，在这里会被自动转化为复数，所以建立集合的时候尽量为复数

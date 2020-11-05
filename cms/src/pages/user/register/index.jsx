@@ -1,4 +1,4 @@
-import { Form, Button, Col, Input, Popover, Progress, Row, Select, message } from 'antd';
+import { Form, Button, Col, Input, Popover, Progress, Row, Select, message, Radio } from 'antd';
 import React, { useState, useEffect } from 'react';
 import { Link, connect, history, FormattedMessage, formatMessage } from 'umi';
 import styles from './style.less';
@@ -79,11 +79,11 @@ const Register = ({ submitting, dispatch, userAndregister }) => {
   const onFinish = (values) => {
     dispatch({
       type: 'userAndregister/submit',
-      payload: { 
-        ...values, 
+      payload: {
+        ...values,
         prefix,
-        currentAuthority:'user', // 刚注册的用户默认是超级管理员
-       },
+        currentAuthority: 'user', // 刚注册的用户默认是超级管理员
+      },
     });
   };
 
@@ -152,7 +152,7 @@ const Register = ({ submitting, dispatch, userAndregister }) => {
             {
               required: true,
               message: '请输入学号',
-            }
+            },
           ]}
         >
           <Input size="large" placeholder="请输入学号" />
@@ -163,7 +163,7 @@ const Register = ({ submitting, dispatch, userAndregister }) => {
             {
               required: true,
               message: '请输入姓名',
-            }
+            },
           ]}
         >
           <Input size="large" placeholder="请输入姓名" />
@@ -230,6 +230,43 @@ const Register = ({ submitting, dispatch, userAndregister }) => {
           ]}
         >
           <Input size="large" type="password" placeholder="确认密码" />
+        </FormItem>
+        <FormItem
+          name="college"
+          rules={[
+            {
+              required: true,
+              message: '请输入所属学院',
+            },
+          ]}
+        >
+          <Input size="large" placeholder="请输入所属学院" />
+        </FormItem>
+        <FormItem
+          name="specializedSubject"
+          rules={[
+            {
+              required: true,
+              message: '请输入所属专业',
+            },
+          ]}
+        >
+          <Input size="large" placeholder="请输入所属专业" />
+        </FormItem>
+        <FormItem
+          name="gender"
+          initialValue="male"
+          rules={[
+            {
+              required: true,
+              message: '请选择性别',
+            },
+          ]}
+        >
+          <Radio.Group size="large" style={{display:'flex',alignItems:'center'}}>
+            <Radio value="male" style={{marginRight:24}}> 男生 </Radio>
+            <Radio value="female"> 女生 </Radio>
+          </Radio.Group>
         </FormItem>
         <InputGroup compact>
           <Select

@@ -351,6 +351,7 @@ Router.post("/updateCommunityInfo", (req, res) => {
     type,
     desc,
     status,
+    reason,
   } = req.body;
   Community.updateOne({
       _id: req.body._id,
@@ -365,6 +366,7 @@ Router.post("/updateCommunityInfo", (req, res) => {
         type,
         desc,
         status,
+        reason,
       },
     })
     .then((data) => {
