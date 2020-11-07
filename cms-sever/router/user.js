@@ -128,6 +128,52 @@ Router.post('/findUserInfo', (req, res) => {
 });
 
 
+/**
+ * @api {post} /user/findUserInfo findUserInfo
+ * @apiName findUserInfo
+ * @apiGroup user
+ *
+ * @apiParam {String} uname 前端传过来的用户名或者邮箱
+ *
+ * @apiSuccess {Number} err 错误码 0：ok -1 失败
+ * @apiSuccess {String} msg  结果信息
+ * @apiSuccess {String} data  返回数据
+ */
+Router.post('/getUserList', (req, res) => {
+    let {
+        pageSize,
+        current,
+    } = req.body;
+    let obj = {};
+        // 查找全部
+        User.find()
+        .then((data) => {
+            // 获取总条数
+            obj.total = data.length;
+            return User.find()
+            .limit(Number(pageSize)).sort([
+                ['createTime', 'desc']
+            ])
+            .skip((Number(current) - 1) * Number(pageSize));
+        })
+        .then((data) => {
+            obj.current = current;
+            obj.data = data;
+            obj.pageSize = pageSize;
+            obj.success = true;
+            res.send(obj);
+        })
+        .catch((err) => {
+            console.log(err);
+            res.send({
+            err: -1,
+            msg: "查询错误",
+            data: null,
+            });
+        });
+       
+});
+
 //邮箱验证码的处理
 const email = require('./sendMail.js');
 //获取post请求的时候要加上下面两句代码才能获取请求的参数

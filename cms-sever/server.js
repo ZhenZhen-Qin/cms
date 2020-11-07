@@ -35,6 +35,13 @@ app.use("/api/user",adminRouter);
 const communityRouter = require('./router/community.js');
 app.use("/api/community",communityRouter);
 
+// 加入社团 相关
+const joinCommunityRouter = require('./router/joinCommunity.js');
+app.use("/api/join",joinCommunityRouter);
+
+// 社团管理员 相关
+const communityAdminRouter = require('./router/communityAdmin.js');
+app.use("/api/admin",communityAdminRouter);
 
 
 

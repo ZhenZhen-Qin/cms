@@ -1,5 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Button, Divider, message, Tooltip, Input, Drawer, Radio } from 'antd';
+import { Button, Divider, message, Popconfirm, Tooltip, Input, Drawer, Radio } from 'antd';
 import React, { useState, useRef } from 'react';
 import moment from 'moment';
 import { PageContainer, FooterToolbar } from '@ant-design/pro-layout';
@@ -9,7 +9,8 @@ import CreateForm from './components/CreateForm';
 import { communityTypeSelect } from '../../../utils/common';
 import { COMMUNITY_SCREEN, LOCAL_STORAGE_KEYS } from '../../../utils/enum';
 import UpdateForm from './components/UpdateForm';
-import OperationModal from './components/OperationModal';
+import EditModal from './components/EditModal';
+import AddAdmin from './components/AddAdmin';
 
 const USER_NAME = localStorage.getItem(LOCAL_STORAGE_KEYS.USER_NAME);
 const NICK_NAME = localStorage.getItem(LOCAL_STORAGE_KEYS.NICK_NAME);
@@ -17,7 +18,10 @@ const NICK_NAME = localStorage.getItem(LOCAL_STORAGE_KEYS.NICK_NAME);
 import {
   getCommunityList,
   addCommunityInfo,
-  queryRule,
+  getCommunityAdminList,
+  getAllUserList,
+  addCommunityAdmin,
+  removeCommunityAdmin,
   updateRule,
   addRule,
   removeRule,
@@ -75,17 +79,121 @@ const handleRemove = async (selectedRows) => {
 };
 
 const TableList = () => {
-  const [createModalVisible, handleModalVisible] = useState(false);
-  const [updateModalVisible, handleUpdateModalVisible] = useState(false);
+  const [editVisible, setEditVisible] = useState(false); // 编辑
+  const [addAdminVisible, setAddAdminVisible] = useState(false); // 管理员管理
+  const [updateModalVisible, handleUpdateModalVisible] = useState(false); //
   const [stepFormValues, setStepFormValues] = useState({});
   const actionRef = useRef();
   const [row, setRow] = useState();
   const [current, setCurrent] = useState();
+  const [adminList, setAdminList] = useState([]);
+  const [userList, setUserList] = useState([]);
+
+  const [selectAdminObj, setSelectAdminObj] = useState(); // 添加管理员选中
+
   const [communityScreen, setCommunityScreen] = useState(COMMUNITY_SCREEN.ALL);
   const [selectedRowsState, setSelectedRows] = useState([]);
 
-  // 保存
-  const handleAdd = async (fields) => {
+  // 记录选中的用户 管理员管理
+  const changeSelectAdmin = (value, obj) => {
+    setSelectAdminObj({
+      adminName: value,
+      adminNick: obj.nick,
+    });
+  };
+
+  // 编辑
+  const showEdit = (record) => {
+    setEditVisible(true);
+    setCurrent(record);
+  };
+
+  const hideEdit = () => {
+    setEditVisible(false);
+    setCurrent();
+  };
+
+  const queryCommunityAdminList = (_id) => {
+    getCommunityAdminList({
+      communityId: _id,
+    }).then((res) => {
+      setAdminList((res && res.data) || []);
+    });
+  }
+
+  const queryAllUserList = () => {
+    getAllUserList({
+      current: 1,
+      pageSize: 10000,
+    }).then((res) => {
+      setUserList((res && res.data) || []);
+    });
+  };
+
+  const removeAdmin = async (_id) => {
+    await removeCommunityAdmin({
+      _id, // 这条记录的_id
+    }).then((res) => {
+      if (res.err === 0) {
+        message.success('添加管理员成功');
+        queryCommunityAdminList(current._id);
+        if (actionRef.current) {
+          actionRef.current.reload();
+        }
+      }else{
+        message.error('操作失败')
+      }
+    });
+  };
+
+
+
+  // 管理员 管理
+  const showAdmin = (record) => {
+    queryCommunityAdminList(record._id);
+    queryAllUserList();
+    setAddAdminVisible(true);
+    setCurrent(record);
+  };
+  const hideAdmin = (record) => {
+    setAddAdminVisible(false);
+    setCurrent();
+  };
+
+   // 保存 接口请求
+     // 添加管理员
+  const addAdmin = async () => {
+    if (current.creatorUserName === selectAdminObj.adminName) {
+      return message.error('你是社团的创建者，不能添加为管理员');
+    }
+    let params = {
+      communityId: current._id,
+      communityName: current.name,
+      creatorUserName: current.creatorUserName,
+      creatorNickName: current.creatorNickName,
+      adminName: selectAdminObj.adminName,
+      adminNick: selectAdminObj.adminNick,
+      createTime: moment().valueOf(),
+    };
+
+    await addCommunityAdmin(params).then((res) => {
+      if (res.err === 0) {
+        message.success('添加管理员成功');
+        queryCommunityAdminList(current._id);
+        if (actionRef.current) {
+          actionRef.current.reload();
+        }
+      } else if (res.err === -2) {
+        message.error('重复添加');
+      } else {
+        message.error('操作失败，请重试');
+      }
+    });
+  };
+
+
+
+   const handleAdd = async (fields) => {
     const hide = message.loading('正在添加');
     // 社团状态 0:已注销，1:审核中 2:审核通过，3:审核不通过
     let options = current
@@ -105,19 +213,13 @@ const TableList = () => {
     try {
       await addCommunityInfo(options);
       hide();
-      message.success('添加成功');
+      message.success(current ? '修改成功' : '添加成功');
       return true;
     } catch (error) {
       hide();
       message.error('添加失败请重试！');
       return false;
     }
-  };
-
-  // 点击编辑
-  const handleEdit = (record) => {
-    handleModalVisible(true);
-    setCurrent(record);
   };
 
   const columns = [
@@ -208,26 +310,47 @@ const TableList = () => {
       render: (text, record) => `${text}（${record.creatorUserName}）`,
     },
     {
+      width: 200,
+      align: 'center',
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
       tip: '只有社团管理员才可以编辑社团',
       render: (_, record) => (
         <>
+          {
+            // 管理员管理
+            record.creatorUserName === localStorage.getItem(LOCAL_STORAGE_KEYS.USER_NAME) && (
+              <>
+                <Button
+                  type="link"
+                  onClick={() => {
+                    showAdmin(record);
+                  }}
+                >
+                  管理
+                </Button>
+                <Divider type="vertical" />
+              </>
+            )
+          }
           <Button
             type="link"
-            disabled={record.creatorUserName !== LOCAL_STORAGE_KEYS.USER_NAME}
+            disabled={record.creatorUserName !== localStorage.getItem(LOCAL_STORAGE_KEYS.USER_NAME)}
             onClick={() => {
-              handleEdit(record);
+              showEdit(record);
               // setStepFormValues(record);
             }}
           >
             编辑
           </Button>
           <Divider type="vertical" />
-          <a href="" style={{ color: record.status === 2 ? '#1890ff' : '#999' }}>
+          <Button
+            type="link"
+            disabled={record.creatorUserName !== localStorage.getItem(LOCAL_STORAGE_KEYS.USER_NAME)}
+          >
             注销
-          </a>
+          </Button>
         </>
       ),
     },
@@ -242,23 +365,30 @@ const TableList = () => {
 
   return (
     <PageContainer>
-      <OperationModal
+      <EditModal
         // done={done}
-        current={current}
-        visible={createModalVisible}
         // onDone={handleDone}
-        onCancel={() => handleModalVisible(false)}
+        current={current}
+        visible={editVisible}
+        onCancel={hideEdit}
         onSubmit={async (value) => {
           const success = await handleAdd(value);
 
           if (success) {
-            handleModalVisible(false);
-
-            if (actionRef.current) {
-              actionRef.current.reload();
-            }
+            hideEdit();
           }
         }}
+      />
+      <AddAdmin
+        current={current}
+        visible={addAdminVisible}
+        onCancel={hideAdmin}
+        adminList={adminList}
+        userList={userList}
+        changeSelectAdmin={changeSelectAdmin}
+        addAdmin={addAdmin}
+        removeAdmin={removeAdmin}
+        selectAdminObj={selectAdminObj}
       />
       <ProTable
         headerTitle="查询表格"
@@ -288,7 +418,7 @@ const TableList = () => {
               我管理的
             </Radio.Button>
           </Radio.Group>,
-          <Button type="primary" onClick={() => handleModalVisible(true)}>
+          <Button type="primary" onClick={() => setEditVisible(true)}>
             <PlusOutlined /> 新建
           </Button>,
         ]}
@@ -331,26 +461,6 @@ const TableList = () => {
           <Button type="primary">批量审批</Button>
         </FooterToolbar>
       )}
-
-      {/* <CreateForm onCancel={() => handleModalVisible(false)} modalVisible={createModalVisible}>
-        <ProTable
-          current={current}
-          onSubmit={async (value) => {
-            const success = await handleAdd(value);
-
-            if (success) {
-              handleModalVisible(false);
-
-              if (actionRef.current) {
-                actionRef.current.reload();
-              }
-            }
-          }}
-          rowKey="key"
-          type="form"
-          columns={columns}
-        />
-      </CreateForm> */}
       {stepFormValues && Object.keys(stepFormValues).length ? (
         <UpdateForm
           onSubmit={async (value) => {

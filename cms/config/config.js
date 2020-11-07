@@ -105,41 +105,29 @@ export default defineConfig({
             icon: 'table',
             name: '活动管理',
             routes: [{
-                path: '/',
-                redirect: '/active/active-list',
+                path: '/active/active-list',
+                redirect: '/active/active-list/articles',
               },
               {
                 name: '活动列表',
                 icon: 'smile',
-                path: '/active/active-list',
-                component: './active/active-list',
-                routes: [{
-                    path: '/active/active-list',
-                    redirect: '/active/active-list/articles',
-                  },
-                  {
-                    name: '活动列表',
-                    icon: 'smile',
-                    path: '/active/active-list/projects',
-                    component: './active/active-list/projects',
-                  },
-                  {
-                    name: '活动资讯',
-                    icon: 'smile',
-                    path: '/active/active-list/articles',
-                    component: './active/active-list/articles',
-                  },
-                  {
-                    name: 'applications',
-                    icon: 'smile',
-                    path: '/active/active-list/applications',
-                    component: './active/active-list/applications',
-                  },
-                ],
+                path: '/active/active-list/projects',
+                component: './active/active-list/projects',
+              },
+              {
+                name: '资讯列表',
+                icon: 'smile',
+                path: '/active/active-list/articles',
+                component: './active/active-list/articles',
+              },
+              {
+                name: 'applications',
+                icon: 'smile',
+                path: '/active/active-list/applications',
+                component: './active/active-list/applications',
               },
             ],
           },
-
           {
             path: '/user-manage',
             icon: 'table',
@@ -147,17 +135,38 @@ export default defineConfig({
             Routes: ['src/pages/Authorized'],
             authority: ['admin', 'user'],
             routes: [{
-                path: '/',
-                redirect: '/user/user-manage-list',
-              },
-              {
-                name: '社团列表',
-                icon: 'smile',
-                path: '/user/user-manage-list',
-                component: './user/user-list',
-              },
-            ],
+              name: '用户列表',
+              icon: 'smile',
+              path: '/user-manage/user-list',
+              component: './user/user-list',
+            }, ],
           },
+
+          {
+            name: '所有社团（学生看的）',
+            icon: 'smile',
+            path: '/student/look-community',
+            Routes: ['src/pages/Authorized'],
+            authority: ['admin', 'user'],
+            component: './student/look-community',
+          },
+          {
+            name: '所有活动（学生看的）',
+            icon: 'smile',
+            path: '/student/look-active',
+            Routes: ['src/pages/Authorized'],
+            authority: ['admin', 'user'],
+            component: './student/look-active',
+          },
+          {
+            name: '新闻资讯（学生看的）',
+            icon: 'smile',
+            path: '/student/look-information',
+            Routes: ['src/pages/Authorized'],
+            authority: ['admin', 'user'],
+            component: './student/look-information',
+          },
+          
 
           // {
           //   path: '/dashboard',

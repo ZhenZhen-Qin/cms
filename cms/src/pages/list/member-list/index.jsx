@@ -1,31 +1,37 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Button, Divider, message, Input, Drawer } from 'antd';
+import { Button, Divider, message, Popconfirm, Tooltip, Input, Drawer, Radio } from 'antd';
 import React, { useState, useRef } from 'react';
+import moment from 'moment';
 import { PageContainer, FooterToolbar } from '@ant-design/pro-layout';
 import ProTable from '@ant-design/pro-table';
 import ProDescriptions from '@ant-design/pro-descriptions';
 import CreateForm from './components/CreateForm';
+import { communityTypeSelect } from '../../../utils/common';
+import { COMMUNITY_SCREEN, LOCAL_STORAGE_KEYS } from '../../../utils/enum';
 import UpdateForm from './components/UpdateForm';
-import { queryRule, updateRule, addRule, removeRule } from './service';
+import EditModal from './components/EditModal';
+import AddAdmin from './components/AddAdmin';
+
+const USER_NAME = localStorage.getItem(LOCAL_STORAGE_KEYS.USER_NAME);
+const NICK_NAME = localStorage.getItem(LOCAL_STORAGE_KEYS.NICK_NAME);
+
+import {
+  getCommunityList,
+  addCommunityInfo,
+  getCommunityAdminList,
+  getAllUserList,
+  addCommunityAdmin,
+  removeCommunityAdmin,
+  updateRule,
+  addRule,
+  removeRule,
+} from './service';
+
 /**
  * 添加节点
  * @param fields
  */
 
-const handleAdd = async (fields) => {
-  const hide = message.loading('正在添加');
-
-  try {
-    await addRule({ ...fields });
-    hide();
-    message.success('添加成功');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('添加失败请重试！');
-    return false;
-  }
-};
 /**
  * 更新节点
  * @param fields
@@ -73,119 +79,349 @@ const handleRemove = async (selectedRows) => {
 };
 
 const TableList = () => {
-  const [createModalVisible, handleModalVisible] = useState(false);
-  const [updateModalVisible, handleUpdateModalVisible] = useState(false);
+  const [editVisible, setEditVisible] = useState(false); // 编辑
+  const [addAdminVisible, setAddAdminVisible] = useState(false); // 管理员管理
+  const [updateModalVisible, handleUpdateModalVisible] = useState(false); //
   const [stepFormValues, setStepFormValues] = useState({});
   const actionRef = useRef();
   const [row, setRow] = useState();
+  const [current, setCurrent] = useState();
+  const [adminList, setAdminList] = useState([]);
+  const [userList, setUserList] = useState([]);
+
+  const [selectAdminObj, setSelectAdminObj] = useState(); // 添加管理员选中
+
+  const [communityScreen, setCommunityScreen] = useState(COMMUNITY_SCREEN.ALL);
   const [selectedRowsState, setSelectedRows] = useState([]);
+
+  // 记录选中的用户 管理员管理
+  const changeSelectAdmin = (value, obj) => {
+    setSelectAdminObj({
+      adminName: value,
+      adminNick: obj.nick,
+    });
+  };
+
+  // 编辑
+  const showEdit = (record) => {
+    setEditVisible(true);
+    setCurrent(record);
+  };
+
+  const hideEdit = () => {
+    setEditVisible(false);
+    setCurrent();
+  };
+
+  const queryCommunityAdminList = (_id) => {
+    getCommunityAdminList({
+      communityId: _id,
+    }).then((res) => {
+      setAdminList((res && res.data) || []);
+    });
+  }
+
+  const queryAllUserList = () => {
+    getAllUserList({
+      current: 1,
+      pageSize: 10000,
+    }).then((res) => {
+      setUserList((res && res.data) || []);
+    });
+  };
+
+  const removeAdmin = async (_id) => {
+    await removeCommunityAdmin({
+      _id, // 这条记录的_id
+    }).then((res) => {
+      if (res.err === 0) {
+        message.success('添加管理员成功');
+        queryCommunityAdminList(current._id);
+        if (actionRef.current) {
+          actionRef.current.reload();
+        }
+      }else{
+        message.error('操作失败')
+      }
+    });
+  };
+
+
+
+  // 管理员 管理
+  const showAdmin = (record) => {
+    queryCommunityAdminList(record._id);
+    queryAllUserList();
+    setAddAdminVisible(true);
+    setCurrent(record);
+  };
+  const hideAdmin = (record) => {
+    setAddAdminVisible(false);
+    setCurrent();
+  };
+
+   // 保存 接口请求
+     // 添加管理员
+  const addAdmin = async () => {
+    if (current.creatorUserName === selectAdminObj.adminName) {
+      return message.error('你是社团的创建者，不能添加为管理员');
+    }
+    let params = {
+      communityId: current._id,
+      communityName: current.name,
+      creatorUserName: current.creatorUserName,
+      creatorNickName: current.creatorNickName,
+      adminName: selectAdminObj.adminName,
+      adminNick: selectAdminObj.adminNick,
+      createTime: moment().valueOf(),
+    };
+
+    await addCommunityAdmin(params).then((res) => {
+      if (res.err === 0) {
+        message.success('添加管理员成功');
+        queryCommunityAdminList(current._id);
+        if (actionRef.current) {
+          actionRef.current.reload();
+        }
+      } else if (res.err === -2) {
+        message.error('重复添加');
+      } else {
+        message.error('操作失败，请重试');
+      }
+    });
+  };
+
+
+
+   const handleAdd = async (fields) => {
+    const hide = message.loading('正在添加');
+    // 社团状态 0:已注销，1:审核中 2:审核通过，3:审核不通过
+    let options = current
+      ? {
+          ...current,
+          ...fields,
+          updateTime: Date.now(),
+        }
+      : {
+          ...fields,
+          status: 1,
+          createTime: Date.now(),
+        };
+    options.creatorUserName = USER_NAME;
+    options.creatorNickName = NICK_NAME;
+
+    try {
+      await addCommunityInfo(options);
+      hide();
+      message.success(current ? '修改成功' : '添加成功');
+      return true;
+    } catch (error) {
+      hide();
+      message.error('添加失败请重试！');
+      return false;
+    }
+  };
+
   const columns = [
     {
-      title: '规则名称',
+      align: 'center',
+      title: '社团ID',
+      dataIndex: '_id',
+      hideInForm: true,
+      ellipsis: true,
+    },
+    {
+      title: '社团名称',
       dataIndex: 'name',
-      tip: '规则名称是唯一的 key',
+      tip: '社团名称是唯一的',
       formItemProps: {
         rules: [
           {
             required: true,
-            message: '规则名称为必填项',
+            message: '社团名称不能为空',
           },
         ],
       },
-      render: (dom, entity) => {
-        return <a onClick={() => setRow(entity)}>{dom}</a>;
+    },
+    {
+      title: '社团类别',
+      dataIndex: 'type',
+      formItemProps: {
+        rules: [
+          {
+            required: true,
+            message: '社团类别不能为空',
+          },
+        ],
+      },
+      valueEnum: communityTypeSelect,
+    },
+    {
+      title: '社团指导老师',
+      dataIndex: 'teacher',
+      formItemProps: {
+        rules: [
+          {
+            required: true,
+            message: '社团指导老师不能为空',
+          },
+        ],
       },
     },
     {
-      title: '描述',
+      title: '社团简介',
       dataIndex: 'desc',
       valueType: 'textarea',
     },
     {
-      title: '服务调用次数',
-      dataIndex: 'callNo',
-      sorter: true,
-      hideInForm: true,
-      renderText: (val) => `${val} 万`,
-    },
-    {
-      title: '状态',
+      title: '社团状态',
       dataIndex: 'status',
       hideInForm: true,
       valueEnum: {
         0: {
-          text: '关闭',
+          text: '已注销',
           status: 'Default',
         },
         1: {
-          text: '运行中',
+          text: '审核中',
           status: 'Processing',
         },
         2: {
-          text: '已上线',
+          text: '审核通过',
           status: 'Success',
         },
         3: {
-          text: '异常',
+          text: '审核不通过',
           status: 'Error',
         },
       },
     },
     {
-      title: '上次调度时间',
-      dataIndex: 'updatedAt',
-      sorter: true,
-      valueType: 'dateTime',
-      hideInForm: true,
-      renderFormItem: (item, { defaultRender, ...rest }, form) => {
-        const status = form.getFieldValue('status');
-
-        if (`${status}` === '0') {
-          return false;
-        }
-
-        if (`${status}` === '3') {
-          return <Input {...rest} placeholder="请输入异常原因！" />;
-        }
-
-        return defaultRender(item);
-      },
+      align: 'center',
+      width: 180,
+      title: '创建时间',
+      dataIndex: 'createTime',
+      render: (text) => moment(parseInt(text)).format('YYYY-MM-DD HH:mm:ss'),
     },
     {
+      align: 'center',
+      title: '创建者',
+      dataIndex: 'creatorNickName',
+      render: (text, record) => `${text}（${record.creatorUserName}）`,
+    },
+    {
+      width: 200,
+      align: 'center',
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
+      tip: '只有社团管理员才可以编辑社团',
       render: (_, record) => (
         <>
-          <a
+          {
+            // 管理员管理
+            record.creatorUserName === localStorage.getItem(LOCAL_STORAGE_KEYS.USER_NAME) && (
+              <>
+                <Button
+                  type="link"
+                  onClick={() => {
+                    showAdmin(record);
+                  }}
+                >
+                  成员管理
+                </Button>
+                <Divider type="vertical" />
+              </>
+            )
+          }
+          <Button
+            type="link"
+            disabled={record.creatorUserName !== localStorage.getItem(LOCAL_STORAGE_KEYS.USER_NAME)}
             onClick={() => {
-              handleUpdateModalVisible(true);
-              setStepFormValues(record);
+              showEdit(record);
+              // setStepFormValues(record);
             }}
           >
-            配置
-          </a>
+            编辑
+          </Button>
           <Divider type="vertical" />
-          <a href="">订阅警报</a>
+          <Button
+            type="link"
+            disabled={record.creatorUserName !== localStorage.getItem(LOCAL_STORAGE_KEYS.USER_NAME)}
+          >
+            注销
+          </Button>
         </>
       ),
     },
   ];
+
+  // 处理社团筛选（全部，我创建的社团或者我管理的社团）
+  const handleSizeChange = (e) => {
+    console.log(e.target.value);
+    e && e.target && e.target.value && setCommunityScreen(e.target.value);
+    actionRef.current.reload();
+  };
+
   return (
     <PageContainer>
+      <EditModal
+        // done={done}
+        // onDone={handleDone}
+        current={current}
+        visible={editVisible}
+        onCancel={hideEdit}
+        onSubmit={async (value) => {
+          const success = await handleAdd(value);
+
+          if (success) {
+            hideEdit();
+          }
+        }}
+      />
+      <AddAdmin
+        current={current}
+        visible={addAdminVisible}
+        onCancel={hideAdmin}
+        adminList={adminList}
+        userList={userList}
+        changeSelectAdmin={changeSelectAdmin}
+        addAdmin={addAdmin}
+        removeAdmin={removeAdmin}
+        selectAdminObj={selectAdminObj}
+      />
       <ProTable
         headerTitle="查询表格"
         actionRef={actionRef}
-        rowKey="key"
+        rowKey="_id"
         search={{
           labelWidth: 120,
         }}
         toolBarRender={() => [
-          <Button type="primary" onClick={() => handleModalVisible(true)}>
-            <PlusOutlined /> 新建
-          </Button>,
+          <Radio.Group value={communityScreen} onChange={handleSizeChange}>
+            <Radio.Button
+              value={COMMUNITY_SCREEN.ALL}
+              type={communityScreen === COMMUNITY_SCREEN.ALL ? 'primary' : 'default'}
+            >
+              全部
+            </Radio.Button>
+            <Radio.Button
+              value={COMMUNITY_SCREEN.CREATE}
+              type={communityScreen === COMMUNITY_SCREEN.CREATE ? 'primary' : 'default'}
+            >
+              我创建的
+            </Radio.Button>
+            <Radio.Button
+              value={COMMUNITY_SCREEN.MANAGE}
+              type={communityScreen === COMMUNITY_SCREEN.MANAGE ? 'primary' : 'default'}
+            >
+              我管理的
+            </Radio.Button>
+          </Radio.Group>,
         ]}
-        request={(params, sorter, filter) => queryRule({ ...params, sorter, filter })}
+        request={(params, sorter, filter) =>
+          getCommunityList({ ...params, sorter, filter, communityScreen, userName: USER_NAME })
+        }
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => setSelectedRows(selectedRows),
@@ -222,24 +458,6 @@ const TableList = () => {
           <Button type="primary">批量审批</Button>
         </FooterToolbar>
       )}
-      <CreateForm onCancel={() => handleModalVisible(false)} modalVisible={createModalVisible}>
-        <ProTable
-          onSubmit={async (value) => {
-            const success = await handleAdd(value);
-
-            if (success) {
-              handleModalVisible(false);
-
-              if (actionRef.current) {
-                actionRef.current.reload();
-              }
-            }
-          }}
-          rowKey="key"
-          type="form"
-          columns={columns}
-        />
-      </CreateForm>
       {stepFormValues && Object.keys(stepFormValues).length ? (
         <UpdateForm
           onSubmit={async (value) => {
