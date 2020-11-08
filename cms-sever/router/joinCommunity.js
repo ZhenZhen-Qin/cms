@@ -1,17 +1,18 @@
 /***
- * 学生加入社团
+ * 社团管理员相关
  */
+
 const express = require("express");
 const Router = express.Router();
 const querystring = require("querystring");
 var bodyParser = require("body-parser");
 Router.use(
-    bodyParser.urlencoded({
-        extended: false,
-    })
+  bodyParser.urlencoded({
+    extended: false,
+  })
 );
 
-const JoinCommunity = require("../mongo/model/joinCommunity.js");
+const CommunityAdmin = require("../mongo/model/joinCommunity.js");
 
 /**
  * @api {post} /community/getCommunityList getCommunityList
@@ -25,75 +26,38 @@ const JoinCommunity = require("../mongo/model/joinCommunity.js");
  * @apiSuccess {String} msg  结果信息
  * @apiSuccess {String} data  返回数据
  */
-Router.post("/getJoinCommunityList", (req, res) => {
-    let {
-        pageSize,
-        current,
-        communityId,
-    } = req.body;
-    let obj = {};
-    // 查找全部
-    if (communityId) {
-        JoinCommunity.find({
-                communityId
-            })
-            .then((data) => {
-                // 获取总条数
-                obj.total = data.length;
-                return Community.find({
-                        communityId
-                    })
-                    .limit(Number(pageSize)).sort([
-                        ['createTime', 'desc']
-                    ])
-                    .skip((Number(current) - 1) * Number(pageSize));
-            })
-            .then((data) => {
-                obj.current = current;
-                obj.data = data;
-                obj.pageSize = pageSize;
-                obj.success = true;
-                res.send(obj);
-            })
-            .catch((err) => {
-                console.log(err);
-                res.send({
-                    err: -1,
-                    msg: "查询错误",
-                    data: null,
-                });
-            });
+Router.post("/getCommunityAdminList", (req, res) => {
+  let {
+    communityId,
+    isAdmin
+  } = req.body;
 
-    } else {
-        JoinCommunity.find()
-            .then((data) => {
-                // 获取总条数
-                obj.total = data.length;
-                return Community.find()
-                    .limit(Number(pageSize)).sort([
-                        ['createTime', 'desc']
-                    ])
-                    .skip((Number(current) - 1) * Number(pageSize));
-            })
-            .then((data) => {
-                obj.current = current;
-                obj.data = data;
-                obj.pageSize = pageSize;
-                obj.success = true;
-                res.send(obj);
-            })
-            .catch((err) => {
-                console.log(err);
-                res.send({
-                    err: -1,
-                    msg: "查询错误",
-                    data: null,
-                });
-            });
-    }
-
+  CommunityAdmin.find(isAdmin ? {
+      isAdmin,
+      communityId
+    } : {
+      communityId,
+    })
+    .limit(100)
+    .sort([
+      ["createTime", "desc"]
+    ])
+    .then((data) => {
+      res.send({
+        err: 0,
+        msg: "查询成功",
+        data,
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.send({
+        err: -1,
+        msg: "查询错误",
+        data: null,
+      });
+    });
 });
-
 
 /**
  * @api {post} /community/addCommunityInfo 加入社团
@@ -115,51 +79,128 @@ Router.post("/getJoinCommunityList", (req, res) => {
  * @apiSuccess {String} msg  结果信息
  * @apiSuccess {String} data  返回数据
  */
-Router.post("/joinCommunity", (req, res) => {
-    const params = req.body;
-    // 加入之前先查询 社团id和用户名称是否存在 避免重复加入
-    JoinCommunity.find({
-            communityId: params.communityId,
-            userName: params.userName
-        })
-        .then((data) => {
-            if (data && data.length > 0) {
-                res.send({
-                    err: -2,
-                    msg: "重复提交",
-                    data: null,
-                });
-            } else {
-                JoinCommunity.insertMany(params)
-                    .then((data) => {
-                        if (data.length > 0) {
-                            res.send({
-                                err: 0,
-                                msg: "操作成功",
-                                data: null,
-                            });
-                        }
-                    })
-                    .catch((err) => {
-                        console.log(err);
-                        res.send({
-                            err: -1,
-                            msg: "操作失败",
-                            data: null,
-                        });
-                    });
+Router.post("/addCommunityAdmin", (req, res) => {
+  const params = req.body;
+  // 加入之前先查询 社团id和用户名称是否存在 避免重复加入
+  CommunityAdmin.find({
+      communityId: params.communityId,
+      memberName: params.memberName,
+    })
+    .then((data) => {
+      if (data && data.length > 0) {
+        res.send({
+          err: -2,
+          msg: "重复提交",
+          data: null,
+        });
+      } else {
+        CommunityAdmin.insertMany(params)
+          .then((data) => {
+            if (data.length > 0) {
+              res.send({
+                err: 0,
+                msg: "操作成功",
+                data: null,
+              });
             }
-        })
-        .catch((err) => {
-            console.log(err)
+          })
+          .catch((err) => {
+            console.log(err);
             res.send({
-                err: -1,
-                msg: '查询错误',
-                data: null
-            })
-        })
+              err: -1,
+              msg: "操作失败",
+              data: null,
+            });
+          });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      res.send({
+        err: -1,
+        msg: "查询错误",
+        data: null,
+      });
+    });
 });
 
 
+/**
+ * @api {post} /book/removeBookInfo removeBookInfo
+ * @apiName removeBookInfo
+ * @apiGroup book
+ *
+ * @apiParam {String} _id 数据库自动生成的图书ID
+ *
+ * @apiSuccess {Number} err 错误码 0：ok  -1 失败
+ * @apiSuccess {String} msg  结果信息
+ * @apiSuccess {String} data  返回数据
+ */
+Router.post('/delete', (req, res) => {
+  CommunityAdmin.deleteOne({
+      _id: req.body._id
+    })
+    .then((data) => {
+      res.send({
+        err: 0,
+        msg: "移除成功",
+        data: null
+      })
+    })
+    .catch((err) => {
+      console.log(err);
+      res.send({
+        err: -1,
+        msg: "操作失败",
+        data: null
+      })
+    })
+});
+
+
+
+/**
+ * @api {post} /borrowbook/updateBorrowBook updateBorrowBook
+ * @apiName updateBorrowBook
+ * @apiGroup borrowbook
+ *
+ * @apiParam {String} readerName 读者名不可更改
+ * @apiParam {String} bookname 书名
+ * @apiParam {String} bookid 书ID
+ * @apiParam {String} borrowDate 借书日期
+ * @apiParam {String} returnDate 还书日期
+ * @apiParam {String} fine 逾期的罚金
+ *
+ *
+ * @apiSuccess {Number} err 错误码 0：ok  -1 失败
+ * @apiSuccess {String} msg  结果信息
+ * @apiSuccess {String} data  返回数据
+ */
+Router.post("/updateStatus", (req, res) => {
+  const params = req.body;
+  CommunityAdmin.updateOne({
+      _id: params._id
+    }, {
+      $set: {
+        ...params
+      }
+    })
+    .then((data) => {
+      console.log(data);
+      res.send({
+        err: 0,
+        msg: "操作成功",
+        data: null,
+      })
+    })
+    .catch((err) => {
+      console.log(err)
+      res.send({
+        err: -1,
+        msg: '操作失败',
+        data: null
+      })
+    })
+})
 
 module.exports = Router;

@@ -5,6 +5,7 @@ import request from '../../../utils/request';
  */
 // 添加社团
 export async function addCommunityInfo(params) {
+  console.log(params)
   if (params._id) {
     return request('/api/community/updateCommunityInfo', {
       method: 'POST',
@@ -24,6 +25,7 @@ export async function addCommunityInfo(params) {
 
 // 获取社团列表
 export async function getCommunityList(params) {
+  console.log(params)
   return request('/api/community/getCommunityList', {
     method: 'POST',
     data: {
@@ -35,6 +37,7 @@ export async function getCommunityList(params) {
 
 // 获取社团管理员列表
 export async function getCommunityAdminList(params) {
+  console.log(params)
   return request('/api/admin/getCommunityAdminList', {
     method: 'POST',
     data: {
@@ -46,6 +49,7 @@ export async function getCommunityAdminList(params) {
 
 // 添加社团管理员
 export async function addCommunityAdmin(params) {
+  console.log(params)
   return request('/api/admin/addCommunityAdmin', {
     method: 'POST',
     data: {
@@ -56,17 +60,8 @@ export async function addCommunityAdmin(params) {
 
 // 添加社团管理员
 export async function removeCommunityAdmin(params) {
+  console.log(params)
   return request('/api/admin/delete', {
-    method: 'POST',
-    data: {
-      ...params
-    },
-  });
-}
-
-// 添加社团管理员
-export async function updateStatus(params) {
-  return request('/api/admin/updateStatus', {
     method: 'POST',
     data: {
       ...params
@@ -77,6 +72,7 @@ export async function updateStatus(params) {
 
 // 查找所有用户
 export async function getAllUserList(params) {
+  console.log(params)
   return request('/api/user/getUserList', {
     method: 'POST',
     data: {

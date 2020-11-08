@@ -1,4 +1,4 @@
-// 创建数据模型
+// 学生（用户）表
 const mongoose = require("mongoose");
 let userSchema = mongoose.Schema({
     _id:{type:String},
@@ -11,9 +11,9 @@ let userSchema = mongoose.Schema({
     gender:{type:String}, // 性别 男male 女female
     // 枚举字段（user：普通用户，admin：管理员，sysadmin：超级管理员）
     currentAuthority:{type:String,default:"user"}  // 当前权限 默认是管理员
-    
+
 });
 
 //注意：数据库的集合名，在这里会被自动转化为复数，所以建立集合的时候尽量为复数
-let user = mongoose.model("user",userSchema);
+let user = mongoose.model("users",userSchema);
 module.exports = user;

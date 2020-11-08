@@ -17,7 +17,7 @@ export async function getCommunityList(params) {
 
 // 申请加入该社团
 export async function joinCommunity(params) {
-  return request('/api/join/joinCommunity', {
+  return request('/api/admin/addCommunityAdmin', {
     method: 'POST',
     data: {
       ...params

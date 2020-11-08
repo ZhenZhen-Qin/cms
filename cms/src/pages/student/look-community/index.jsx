@@ -59,8 +59,11 @@ const Projects = ({ dispatch, lookCommunity: { list = [] }, loading }) => {
       payload: {
         communityId: current._id,
         communityName: current.name,
-        userName: localStorage.getItem(LOCAL_STORAGE_KEYS.USER_NAME),
-        nickName: localStorage.getItem(LOCAL_STORAGE_KEYS.NICK_NAME),
+        creatorUserName:current.creatorUserName,
+        creatorNickName:current.creatorNickName,
+        memberName: localStorage.getItem(LOCAL_STORAGE_KEYS.USER_NAME),
+        memberNick: localStorage.getItem(LOCAL_STORAGE_KEYS.NICK_NAME),
+        isAdmin:'0',
         reason: value.reason,
         createTime: moment().valueOf(),
         status: '0', // '0' 审核中，‘1’审核通过

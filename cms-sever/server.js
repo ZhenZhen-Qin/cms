@@ -31,31 +31,17 @@ app.use(express.json());
 const adminRouter = require('./router/user.js');
 app.use("/api/user",adminRouter);
 
-// 社团相关
+// 社团相关接口
 const communityRouter = require('./router/community.js');
 app.use("/api/community",communityRouter);
 
-// 加入社团 相关
-const joinCommunityRouter = require('./router/joinCommunity.js');
-app.use("/api/join",joinCommunityRouter);
+// 活动相关接口
+const activeRouter = require('./router/active.js');
+app.use("/api/active",activeRouter);
 
-// 社团管理员 相关
-const communityAdminRouter = require('./router/communityAdmin.js');
+// 学生加入社团相关接口
+const communityAdminRouter = require('./router/joinCommunity.js');
 app.use("/api/admin",communityAdminRouter);
-
-
-
-const bookRouter = require('./router/bookAdmin.js');
-app.use("/book",bookRouter);
-
-const bookTypeRouter = require('./router/bookTypeAdmin.js');
-app.use("/booktype",bookTypeRouter);
-
-const borrowBookRouter = require('./router/borrowBookAdmin.js');
-app.use("/borrowbook",borrowBookRouter);
-
-const readerRouter = require('./router/readerAdmin.js');
-app.use("/reader",readerRouter);
 
 const upload = require('./router/upload.js');
 app.use("/uploads",upload);

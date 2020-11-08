@@ -22,61 +22,8 @@ import {
   getAllUserList,
   addCommunityAdmin,
   removeCommunityAdmin,
-  updateRule,
-  addRule,
-  removeRule,
+  updateStatus,
 } from './service';
-
-/**
- * 添加节点
- * @param fields
- */
-
-/**
- * 更新节点
- * @param fields
- */
-
-const handleUpdate = async (fields) => {
-  const hide = message.loading('正在配置');
-
-  try {
-    await updateRule({
-      name: fields.name,
-      desc: fields.desc,
-      key: fields.key,
-    });
-    hide();
-    message.success('配置成功');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('配置失败请重试！');
-    return false;
-  }
-};
-/**
- *  删除节点
- * @param selectedRows
- */
-
-const handleRemove = async (selectedRows) => {
-  const hide = message.loading('正在删除');
-  if (!selectedRows) return true;
-
-  try {
-    await removeRule({
-      key: selectedRows.map((row) => row.key),
-    });
-    hide();
-    message.success('删除成功，即将刷新');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('删除失败，请重试');
-    return false;
-  }
-};
 
 const TableList = () => {
   const [editVisible, setEditVisible] = useState(false); // 编辑
@@ -91,14 +38,14 @@ const TableList = () => {
 
   const [selectAdminObj, setSelectAdminObj] = useState(); // 添加管理员选中
 
-  const [communityScreen, setCommunityScreen] = useState(COMMUNITY_SCREEN.ALL);
+  const [communityScreen, setCommunityScreen] = useState(COMMUNITY_SCREEN.CREATE);
   const [selectedRowsState, setSelectedRows] = useState([]);
 
   // 记录选中的用户 管理员管理
   const changeSelectAdmin = (value, obj) => {
     setSelectAdminObj({
-      adminName: value,
-      adminNick: obj.nick,
+      memberName: value,
+      memberNick: obj.nick,
     });
   };
 
@@ -119,7 +66,7 @@ const TableList = () => {
     }).then((res) => {
       setAdminList((res && res.data) || []);
     });
-  }
+  };
 
   const queryAllUserList = () => {
     getAllUserList({
@@ -140,13 +87,11 @@ const TableList = () => {
         if (actionRef.current) {
           actionRef.current.reload();
         }
-      }else{
-        message.error('操作失败')
+      } else {
+        message.error('操作失败');
       }
     });
   };
-
-
 
   // 管理员 管理
   const showAdmin = (record) => {
@@ -155,15 +100,15 @@ const TableList = () => {
     setAddAdminVisible(true);
     setCurrent(record);
   };
-  const hideAdmin = (record) => {
+  const hideAdmin = () => {
     setAddAdminVisible(false);
     setCurrent();
   };
 
-   // 保存 接口请求
-     // 添加管理员
+  // 保存 接口请求
+  // 添加管理员
   const addAdmin = async () => {
-    if (current.creatorUserName === selectAdminObj.adminName) {
+    if (current.creatorUserName === selectAdminObj.memberName) {
       return message.error('你是社团的创建者，不能添加为管理员');
     }
     let params = {
@@ -171,8 +116,9 @@ const TableList = () => {
       communityName: current.name,
       creatorUserName: current.creatorUserName,
       creatorNickName: current.creatorNickName,
-      adminName: selectAdminObj.adminName,
-      adminNick: selectAdminObj.adminNick,
+      memberName: selectAdminObj.memberName,
+      memberNick: selectAdminObj.memberNick,
+      isAdmin: '0',
       createTime: moment().valueOf(),
     };
 
@@ -191,9 +137,7 @@ const TableList = () => {
     });
   };
 
-
-
-   const handleAdd = async (fields) => {
+  const handleAdd = async (fields) => {
     const hide = message.loading('正在添加');
     // 社团状态 0:已注销，1:审核中 2:审核通过，3:审核不通过
     let options = current
@@ -218,6 +162,27 @@ const TableList = () => {
     } catch (error) {
       hide();
       message.error('添加失败请重试！');
+      return false;
+    }
+  };
+
+  // 审核学生申请的社团
+  const updateMemberStatus = async (params) => {
+    try {
+      await updateStatus(params).then((res) => {
+        if (res.err === 0) {
+          message.success('操作成功');
+          queryCommunityAdminList(current._id);
+        if (actionRef.current) {
+          actionRef.current.reload();
+        }
+        } else {
+          message.error('操作失败请重试！');
+        }
+      });
+      return true;
+    } catch (error) {
+      message.error('操作失败请重试！');
       return false;
     }
   };
@@ -388,6 +353,7 @@ const TableList = () => {
         changeSelectAdmin={changeSelectAdmin}
         addAdmin={addAdmin}
         removeAdmin={removeAdmin}
+        updateMemberStatus={updateMemberStatus}
         selectAdminObj={selectAdminObj}
       />
       <ProTable
@@ -399,12 +365,6 @@ const TableList = () => {
         }}
         toolBarRender={() => [
           <Radio.Group value={communityScreen} onChange={handleSizeChange}>
-            <Radio.Button
-              value={COMMUNITY_SCREEN.ALL}
-              type={communityScreen === COMMUNITY_SCREEN.ALL ? 'primary' : 'default'}
-            >
-              全部
-            </Radio.Button>
             <Radio.Button
               value={COMMUNITY_SCREEN.CREATE}
               type={communityScreen === COMMUNITY_SCREEN.CREATE ? 'primary' : 'default'}
