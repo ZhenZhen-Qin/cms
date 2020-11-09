@@ -7,6 +7,7 @@ import CSelect from '../../../../components/CSelect';
 import { communityType } from '../../../../utils/common';
 import { value } from 'numeral';
 const { TextArea } = Input;
+const { Option } = Select;
 const { RangePicker } = DatePicker;
 
 const formLayout = {
@@ -101,7 +102,7 @@ const OperationModal = (props) => {
         <Form.Item
           name="activeName"
           label="活动标题"
-          initialValue="55"
+          initialValue={current.activeName}
           rules={[
             {
               required: true,
@@ -114,7 +115,7 @@ const OperationModal = (props) => {
         <Form.Item
           name="communityId"
           label="关联社团"
-          initialValue="66"
+          initialValue={current.communityId}
           rules={[
             {
               required: true,
@@ -132,16 +133,11 @@ const OperationModal = (props) => {
         <Form.Item
           name="createdAt"
           label="活动时间"
-          rules={[
-            {
-              required: true,
-              message: '请选择活动时间',
-            },
-          ]}
+         required
         >
           <Space direction="vertical" size={12}>
             <RangePicker
-              defaultValue={[moment(current.startTime) || null, moment(current.endTime) || null]}
+              defaultValue={current.startTime && current.endTime?[moment(current.startTime), moment(current.endTime)]:undefined}
               showTime={{ format: 'HH:mm' }}
               format="YYYY-MM-DD HH:mm"
               onChange={onChange}
@@ -149,10 +145,23 @@ const OperationModal = (props) => {
             />
           </Space>
         </Form.Item>
-        <Form.Item name="desc" label="活动描述" initialValue="88">
+        <Form.Item
+          name="activeAddr"
+          label="活动地点"
+          initialValue={current.activeAddr}
+          rules={[
+            {
+              required: true,
+              message: '请输入活动地点',
+            },
+          ]}
+        >
+          <Input placeholder="请输入" />
+        </Form.Item>
+        <Form.Item name="desc" label="活动描述" initialValue={current.desc}>
           <TextArea rows={4} placeholder="请输入" />
         </Form.Item>
-        <Form.Item name="upperLimit" label="参与人数上限" initialValue={99}>
+        <Form.Item name="upperLimit" label="参与人数上限" initialValue={current.upperLimit}>
           <InputNumber placeholder="不填默认不限制" style={{ width: '100%' }} />
         </Form.Item>
       </Form>

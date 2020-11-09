@@ -23,7 +23,7 @@ import {
   addCommunityAdmin,
   removeCommunityAdmin,
   updateRule,
-  addRule,
+  deleteActive,
   removeRule,
 } from './service';
 
@@ -102,8 +102,6 @@ const TableList = () => {
     });
   };
 
-  
-
   // 新增
   const showAdd = async () => {
     await queryCommunityList();
@@ -125,7 +123,7 @@ const TableList = () => {
     getCommunityList({
       current: 1,
       pageSize: 10000,
-      userName: localStorage.getItem(LOCAL_STORAGE_KEYS.USER_NAME)
+      userName: localStorage.getItem(LOCAL_STORAGE_KEYS.USER_NAME),
     }).then((res) => {
       setCommunityList((res && res.data) || []);
     });
@@ -169,7 +167,6 @@ const TableList = () => {
   };
 
   // 保存 接口请求
-  // 添加管理员
   const addAdmin = async () => {
     if (current.creatorUserName === selectAdminObj.adminName) {
       return message.error('你是社团的创建者，不能添加为管理员');
@@ -218,13 +215,43 @@ const TableList = () => {
     options.creatorNickName = NICK_NAME;
 
     try {
-      await addCommunityInfo(options);
-      hide();
-      message.success(current ? '修改成功' : '添加成功');
-      return true;
+      await addCommunityInfo(options).then((res) => {
+        if (res.err === 0) {
+          hide();
+          message.success(current ? '修改成功' : '添加成功');
+          hideEdit();
+          if (actionRef.current) {
+            actionRef.current.reload();
+          }
+          return true;
+        } else {
+          message.error('操作失败请重试！');
+        }
+      });
+    } catch (error) {
+      message.error('操作失败请重试！');
+      return false;
+    }
+  };
+
+  // 删除活动
+  const removeActive = async (_id) => {
+    try {
+      await deleteActive({_id}).then((res) => {
+        if (res.err === 0) {
+          message.success('删除成功');
+          if (actionRef.current) {
+            actionRef.current.reload();
+          }
+          return true;
+        } else {
+          message.error('删除失败请重试！');
+          return false;
+        }
+      });
     } catch (error) {
       hide();
-      message.error('添加失败请重试！');
+      message.error('操作失败请重试！');
       return false;
     }
   };
@@ -262,11 +289,11 @@ const TableList = () => {
       title: '社团状态',
       dataIndex: 'status',
       valueEnum: {
-        '1': {
+        1: {
           text: '上线',
           status: 'Success',
         },
-        '0': {
+        0: {
           text: '下线',
           status: 'Error',
         },
@@ -277,10 +304,19 @@ const TableList = () => {
       width: 180,
       title: '活动时间',
       dataIndex: 'startTime',
-      render: (text,record) => <span>
-        {moment(parseInt(text)).format('YYYY-MM-DD HH:mm:ss')}<br />
-        {moment(parseInt(record.endTime)).format('YYYY-MM-DD HH:mm:ss')}
-        </span>,
+      render: (text, record) => (
+        <span>
+          {moment(parseInt(text)).format('YYYY-MM-DD HH:mm:ss')}
+          <br />
+          {moment(parseInt(record.endTime)).format('YYYY-MM-DD HH:mm:ss')}
+        </span>
+      ),
+    },
+    {
+      align: 'center',
+      width: 180,
+      title: '活动地点',
+      dataIndex: 'activeAddr',
     },
     {
       align: 'center',
@@ -308,12 +344,21 @@ const TableList = () => {
             编辑
           </Button>
           <Divider type="vertical" />
-          <Button
-            type="link"
-            disabled={record.creatorUserName !== localStorage.getItem(LOCAL_STORAGE_KEYS.USER_NAME)}
+          <Popconfirm
+            title="是否要删除该活动?"
+            onConfirm={() => removeActive(record._id)}
+            okText="是"
+            cancelText="否"
           >
-            注销
-          </Button>
+            <Button
+              type="link"
+              disabled={
+                record.creatorUserName !== localStorage.getItem(LOCAL_STORAGE_KEYS.USER_NAME)
+              }
+            >
+              删除
+            </Button>
+          </Popconfirm>
         </>
       ),
     },

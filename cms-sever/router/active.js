@@ -111,11 +111,11 @@ Router.post("/update", (req, res) => {
  * @apiSuccess {String} data  返回数据
  */
 Router.post('/delete', (req, res) => {
-    let id = req.body._id;
     Active.deleteOne({
-            _id: id
+            _id: req.body._id
         })
         .then((data) => {
+            console.log(data,req.body._id)
             res.send({
                 err: 0,
                 msg: "操作成功",

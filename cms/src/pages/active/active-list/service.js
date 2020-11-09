@@ -34,6 +34,17 @@ export async function getActiveList(params) {
   });
 }
 
+// 删除活动
+export async function deleteActive(params) {
+  console.log(params)
+  return request('/api/active/delete', {
+    method: 'POST',
+    data: {
+      ...params
+    },
+  });
+}
+
 
 // 获取社团列表
 export async function getCommunityList(params) {

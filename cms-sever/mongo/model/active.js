@@ -3,6 +3,7 @@
 const mongoose = require("mongoose");
 let adminSchema = mongoose.Schema({
     activeName:{type:String,required:true},  // 活动名称
+    activeAddr:{type:String},  // 活动地点
     desc:{type:String},  // 活动描述
     startTime:{type:Number,required:true},  // 活动开始时间
     endTime:{type:Number,required:true},  // 活动结束时间
