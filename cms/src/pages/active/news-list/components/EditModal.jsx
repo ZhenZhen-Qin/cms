@@ -1,12 +1,15 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import moment from 'moment';
-import { Modal, Result, Button, Form, DatePicker, Input, Select } from 'antd';
+import { Modal, Result, Button, Form, DatePicker, Space, Input, InputNumber, Select } from 'antd';
 import styles from '../style.less';
 
 import CSelect from '../../../../components/CSelect';
 import { communityType } from '../../../../utils/common';
 import { value } from 'numeral';
 const { TextArea } = Input;
+const { Option } = Select;
+const { RangePicker } = DatePicker;
+
 const formLayout = {
   labelCol: {
     span: 7,
@@ -18,7 +21,9 @@ const formLayout = {
 
 const OperationModal = (props) => {
   const [form] = Form.useForm();
-  const { done, visible, current, onDone, onCancel, onSubmit } = props;
+  const [startTime, setStartTime] = useState();
+  const [endTime, setEndTime] = useState();
+  const { done, visible, current = {}, onDone, onCancel, onSubmit, communityList } = props;
   useEffect(() => {
     if (form && !visible) {
       form.resetFields();
@@ -33,28 +38,45 @@ const OperationModal = (props) => {
     }
   }, [props.current]);
 
+  const onChange = function (value, dateString) {
+    console.log('Selected Time: ', value);
+    console.log('Formatted Selected Time: ', dateString);
+  };
+
+  // 设置活动的开始时间
+  const onOk = function (value) {
+    console.log('onOk: ', value);
+    value[0] && setStartTime(moment(value[0]).valueOf());
+    value[1] && setEndTime(moment(value[1]).valueOf());
+  };
+
   const handleSubmit = () => {
     if (!form) return;
-    console.log(form)
     form.submit();
   };
 
   const handleFinish = (values) => {
     if (onSubmit) {
-      onSubmit(values);
+      // 取出社团对象
+      const selectActiveObj = communityList.filter((item) => item._id === values.activeId)[0];
+      onSubmit({
+        ...values,
+        activeName: selectActiveObj.activeName,
+        createTime: moment().valueOf(),
+      });
     }
   };
 
   const modalFooter = done
     ? {
-      footer: null,
-      onCancel: onDone,
-    }
+        footer: null,
+        onCancel: onDone,
+      }
     : {
-      okText: '保存',
-      onOk: handleSubmit,
-      onCancel,
-    };
+        okText: '保存',
+        onOk: handleSubmit,
+        onCancel,
+      };
 
   const getModalContent = () => {
     if (done) {
@@ -73,74 +95,42 @@ const OperationModal = (props) => {
       );
     }
 
+    console.log(communityList);
     return (
       <Form {...formLayout} form={form} onFinish={handleFinish}>
         <Form.Item
-          name="name"
-          label="社团名称"
+          name="title"
+          label="资讯标题"
+          initialValue={current.title}
           rules={[
             {
               required: true,
-              message: '请输入社团名称',
+              message: '请输入资讯标题',
             },
           ]}
         >
           <Input placeholder="请输入" />
         </Form.Item>
-        {/* <Form.Item
-          name="createdAt"
-          label="开始时间"
-          rules={[
-            {
-              required: true,
-              message: '请选择开始时间',
-            },
-          ]}
-        >
-          <DatePicker
-            showTime
-            placeholder="请选择"
-            format="YYYY-MM-DD HH:mm:ss"
-            style={{
-              width: '100%',
-            }}
-          />
-        </Form.Item> */}
         <Form.Item
-          name="type"
-          label="社团分类"
+          name="activeId"
+          label="关联活动"
+          initialValue={current.activeId}
           rules={[
             {
               required: true,
-              message: '请选择社团分类',
+              message: '请选择关联活动',
             },
           ]}
         >
-          <CSelect placeholder="请选择社团分类" data={communityType}></CSelect>
+          <Select placeholder="请选择关联活动">
+            {communityList &&
+              communityList.map((item) => {
+                return <Option value={item._id}>{item.activeName}</Option>;
+              })}
+          </Select>
         </Form.Item>
-        <Form.Item
-          name="desc"
-          label="社团简介"
-          rules={[
-            {
-              message: '请输入至少五个字符的社团简介！',
-              min: 5,
-            },
-          ]}
-        >
-          <TextArea rows={4} placeholder="请输入至少五个字符" />
-        </Form.Item>
-        <Form.Item
-          name="teacher"
-          label="社团指导老师"
-          rules={[
-            {
-              required: true,
-              message: '社团指导老师',
-            },
-          ]}
-        >
-          <Input placeholder="请输入" />
+        <Form.Item name="content" label="内容" initialValue={current.content}>
+          <TextArea rows={4} placeholder="请输入" />
         </Form.Item>
       </Form>
     );
@@ -148,17 +138,17 @@ const OperationModal = (props) => {
 
   return (
     <Modal
-      title={done ? null : `${current ? '编辑' : '添加'}社团`}
+      title={done ? null : `${current ? '编辑' : '添加'}资讯`}
       className={styles.standardListForm}
       width={640}
       bodyStyle={
         done
           ? {
-            padding: '72px 0',
-          }
+              padding: '72px 0',
+            }
           : {
-            padding: '28px 0 0',
-          }
+              padding: '28px 0',
+            }
       }
       destroyOnClose
       visible={visible}

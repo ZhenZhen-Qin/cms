@@ -5,7 +5,7 @@ let modelSchema = mongoose.Schema({
     content:{type:String,required:true}, // 内容 
     activeId:{type:String}, // 活动ID
     activeName:{type:String}, // 活动名称
-    createTime:{type:Number}, // 活动创建时间
+    createTime:{type:Number}, // 资讯创建时间
 });
 
 let model = mongoose.model("news",modelSchema);

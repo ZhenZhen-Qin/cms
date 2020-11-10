@@ -7,14 +7,37 @@ import request from '../../../utils/request';
 export async function addCommunityInfo(params) {
   console.log(params)
   if (params._id) {
-    return request('/api/community/updateCommunityInfo', {
+    return request('/api/news/update', {
       method: 'POST',
       data: {
         ...params
       },
     });
   }
-  return request('/api/community/addCommunityInfo', {
+  return request('/api/news/add', {
+    method: 'POST',
+    data: {
+      ...params
+    },
+  });
+}
+
+
+// 获取资讯列表
+export async function getActiveList(params) {
+  console.log(params)
+  return request('/api/news/find', {
+    method: 'POST',
+    data: {
+      ...params
+    },
+  });
+}
+
+// 删除活动
+export async function deleteActive(params) {
+  console.log(params)
+  return request('/api/news/delete', {
     method: 'POST',
     data: {
       ...params
@@ -26,19 +49,7 @@ export async function addCommunityInfo(params) {
 // 获取社团列表
 export async function getCommunityList(params) {
   console.log(params)
-  return request('/api/community/getCommunityList', {
-    method: 'POST',
-    data: {
-      ...params
-    },
-  });
-}
-
-
-// 获取社团管理员列表
-export async function getCommunityAdminList(params) {
-  console.log(params)
-  return request('/api/admin/getCommunityAdminList', {
+  return request('/api/active/find', {
     method: 'POST',
     data: {
       ...params
