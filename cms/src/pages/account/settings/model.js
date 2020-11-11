@@ -54,10 +54,12 @@ const Model = {
 
     *getUserInfo({ payload }, { call, put }) {
       const response = yield call(getUserInfo, payload);
+    
       yield put({
         type: 'setUserInfo',
         payload: response,
       });
+      return response;
     },
 
     *update({ payload }, { call, put }) {

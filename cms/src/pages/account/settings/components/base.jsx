@@ -7,7 +7,7 @@ import PhoneView from './PhoneView';
 import styles from './BaseView.less';
 import { LOCAL_STORAGE_KEYS } from '@/utils/enum';
 const { Option } = Select; // 头像组件 方便以后独立，增加裁剪之类的功能
-const defaultHeadImg = '/public/img/Default.PNG';
+const defaultHeadImg = 'http://localhost:3000/public/img/Default.PNG';
 const validatorGeographic = (_, value, callback) => {
   const { province, city } = value;
 
@@ -50,6 +50,17 @@ class BaseView extends Component {
       payload: {
         userName: localStorage.getItem(LOCAL_STORAGE_KEYS.USER_NAME),
       },
+    }).then((res) => {
+      console.log(res);
+      if (res && res.data && res.data.length > 0) {
+        res.data[0].headImg &&
+          this.setState(
+            {
+              currentHeadImg: `http://localhost:3000${res.data[0].headImg}`,
+            },
+            () => console.log(this.state.currentHeadImg),
+          );
+      }
     });
   }
 
@@ -99,6 +110,7 @@ class BaseView extends Component {
       payload: params,
     }).then((res) => {
       console.log(res);
+
       message.success('更新基本信息成功');
     });
   };
@@ -126,7 +138,7 @@ class BaseView extends Component {
           message.success(`${info.file.name} 上传成功`);
           if (info && info.file && info.file.response) {
           }
-          that.setState({ currentHeadImg: info.file.response.data });
+          that.setState({ currentHeadImg: `http://localhost:3000${info.file.response.data }`});
           console.log(info);
         } else if (info.file.status === 'error') {
           message.error(`${info.file.name} 上传失败`);
@@ -134,22 +146,6 @@ class BaseView extends Component {
       },
     };
 
-    const AvatarView = ({ avatar }) => (
-      <>
-        <div className={styles.avatar_title}>头像</div>
-        <div className={styles.avatar}>
-          <img src={`http://localhost:3000${userInfo.headImg || currentHeadImg}`} alt="avatar" />
-        </div>
-        <Upload showUploadList={false} {...props}>
-          <div className={styles.button_view}>
-            <Button>
-              <UploadOutlined />
-              更换头像
-            </Button>
-          </div>
-        </Upload>
-      </>
-    );
     const { currentHeadImg } = this.state;
 
     return (
@@ -274,7 +270,20 @@ class BaseView extends Component {
               </Form>
             </div>
             <div className={styles.right}>
-              <AvatarView avatar={this.getAvatarURL()} />
+              <>
+                <div className={styles.avatar_title}>头像</div>
+                <div className={styles.avatar}>
+                  <img src={currentHeadImg} alt="avatar" />
+                </div>
+                <Upload showUploadList={false} {...props}>
+                  <div className={styles.button_view}>
+                    <Button>
+                      <UploadOutlined />
+                      更换头像
+                    </Button>
+                  </div>
+                </Upload>
+              </>
             </div>
           </div>
         )}
