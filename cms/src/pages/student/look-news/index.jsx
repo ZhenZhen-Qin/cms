@@ -1,5 +1,20 @@
-import { Card, Col, Form, List, Row, Select, Typography, Button, Divider, message } from 'antd';
+import {
+  Card,
+  Col,
+  Form,
+  List,
+  Row,
+  Select,
+  Avatar,
+  Tag,
+  Typography,
+  Tooltip,
+  Button,
+  Divider,
+  message,
+} from 'antd';
 import React, { useEffect, useState } from 'react';
+import { LoadingOutlined, StarOutlined, LikeOutlined, MessageOutlined } from '@ant-design/icons';
 import { connect } from 'umi';
 import moment from 'moment';
 import StandardFormRow from './components/StandardFormRow';
@@ -15,7 +30,7 @@ const { Option } = Select;
 const FormItem = Form.Item;
 const { Paragraph } = Typography;
 
-const Projects = ({ dispatch, lookActive: { list }, loading }) => {
+const Projects = ({ dispatch, lookNews: { list }, loading }) => {
   // 当前值
   const [current, setCurrent] = useState();
   const [allCommunityList, setAllCommunityList] = useState([]);
@@ -42,7 +57,7 @@ const Projects = ({ dispatch, lookActive: { list }, loading }) => {
 
   useEffect(() => {
     dispatch({
-      type: 'lookActive/fetch',
+      type: 'lookNews/fetch',
       payload: {
         pageSize: 1000,
         current: 1,
@@ -81,7 +96,14 @@ const Projects = ({ dispatch, lookActive: { list }, loading }) => {
         console.log(err);
       });
   };
-
+  const fetchMore = () => {
+    dispatch({
+      type: 'listAndsearchAndarticles/appendFetch',
+      payload: {
+        count: pageSize,
+      },
+    });
+  };
   const cardList = list && (
     <>
       <DetailModal current={current} visible={detailVisible} onCancel={hideDetails} />
@@ -100,59 +122,51 @@ const Projects = ({ dispatch, lookActive: { list }, loading }) => {
           }
         }}
       />
-      <List
-        rowKey="id"
-        loading={loading}
-        grid={{
-          gutter: 16,
-          xs: 1,
-          sm: 2,
-          md: 3,
-          lg: 3,
-          xl: 4,
-          xxl: 4,
+      <Card
+        style={{
+          marginTop: 24,
         }}
-        dataSource={list}
-        renderItem={(item) => (
-          <List.Item>
-            <Card
-              className={styles.card}
-              hoverable
-              cover={
-                <img
-                  alt={item.activeName}
-                  src={
-                    'https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=1963304009,2816364381&fm=26&gp=0.jpg'
-                  }
-                />
-              }
+        bordered={false}
+        bodyStyle={{
+          padding: '8px 32px 32px 32px',
+        }}
+      >
+        <List
+          size="large"
+          loading={list.length === 0 ? loading : false}
+          rowKey="id"
+          itemLayout="vertical"
+          loadMore={loadMore}
+          dataSource={list}
+          renderItem={(item) => (
+            <List.Item
+              key={item.id}
+              actions={[
+                <IconText key="star" type="star-o" text={item.star} />,
+                <IconText key="like" type="like-o" text={item.like} />,
+                <IconText key="message" type="message" text={item.message} />,
+              ]}
+              extra={<div className={styles.listItemExtra} />}
             >
-              <Card.Meta
-                title={<a>{item.activeName}</a>}
+              <List.Item.Meta
+                title={
+                  <a className={styles.listItemMetaTitle} href={item.href}>
+                    {item.title}
+                  </a>
+                }
                 description={
-                  <Paragraph
-                    className={styles.item}
-                    ellipsis={{
-                      rows: 2,
-                    }}
-                  >
-                    {item.desc}
-                  </Paragraph>
+                  <>
+                    <span>
+                      <Tag>{item.activeName}</Tag>
+                    </span>
+                    <p>{item.content}</p>
+                  </>
                 }
               />
-              <div>
-                <Button type="link" onClick={() => showDetails(item)}>
-                  查看详情
-                </Button>
-                <Divider type="vertical" />
-                <Button type="link" onClick={() => showJoin(item)}>
-                  参加活动
-                </Button>
-              </div>
-            </Card>
-          </List.Item>
-        )}
-      />
+            </List.Item>
+          )}
+        />
+      </Card>
     </>
   );
   const formItemLayout = {
@@ -165,6 +179,75 @@ const Projects = ({ dispatch, lookActive: { list }, loading }) => {
       },
     },
   };
+
+  const IconText = ({ type, text }) => {
+    switch (type) {
+      case 'star-o':
+        return (
+          <span>
+            <StarOutlined
+              style={{
+                marginRight: 8,
+              }}
+            />
+            {text}
+          </span>
+        );
+
+      case 'like-o':
+        return (
+          <span>
+            <LikeOutlined
+              style={{
+                marginRight: 8,
+              }}
+            />
+            {text}
+          </span>
+        );
+
+      case 'message':
+        return (
+          <span>
+            <MessageOutlined
+              style={{
+                marginRight: 8,
+              }}
+            />
+            {text}
+          </span>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  const loadMore = list.length > 0 && (
+    <div
+      style={{
+        textAlign: 'center',
+        marginTop: 16,
+      }}
+    >
+      <Button
+        onClick={fetchMore}
+        style={{
+          paddingLeft: 48,
+          paddingRight: 48,
+        }}
+      >
+        {loading ? (
+          <span>
+            <LoadingOutlined /> 加载中...
+          </span>
+        ) : (
+          '加载更多'
+        )}
+      </Button>
+    </div>
+  );
+
   return (
     <div className={styles.coverCardList}>
       <Card bordered={false}>
@@ -174,12 +257,12 @@ const Projects = ({ dispatch, lookActive: { list }, loading }) => {
             // 表单项变化时请求数据
             // 模拟查询表单生效
             dispatch({
-              type: 'lookActive/fetch',
+              type: 'lookNews/fetch',
               payload: {
                 pageSize: 1000,
                 current: 1,
                 communityScreen: '0',
-                communityId: value.selCommunityId,
+                activeId: value.selActiveId,
               },
             });
           }}
@@ -187,15 +270,16 @@ const Projects = ({ dispatch, lookActive: { list }, loading }) => {
           <StandardFormRow title="" grid last>
             <Row gutter={16}>
               <Col lg={8} md={10} sm={10} xs={24}>
-                <FormItem {...formItemLayout} label="选择社团" name="selCommunityId">
+                <FormItem {...formItemLayout} label="选择活动" name="selActiveId">
                   <Select
                     placeholder="请选择"
                     style={{
                       width: 300,
                     }}
                   >
+                    <Option value={undefined}>全部</Option>
                     {allCommunityList.map((itemObj) => {
-                      return <Option value={itemObj._id}>{itemObj.name}</Option>;
+                      return <Option value={itemObj._id}>{itemObj.activeName}</Option>;
                     })}
                   </Select>
                 </FormItem>
@@ -209,7 +293,7 @@ const Projects = ({ dispatch, lookActive: { list }, loading }) => {
   );
 };
 
-export default connect(({ lookActive, loading }) => ({
-  lookActive,
-  loading: loading.models.lookActive,
+export default connect(({ lookNews, loading }) => ({
+  lookNews,
+  loading: loading.models.lookNews,
 }))(Projects);

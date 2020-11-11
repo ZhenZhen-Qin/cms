@@ -149,16 +149,17 @@ Router.post("/find", (req, res) => {
       pageSize,
       current,
       communityScreen,
-      userName
+      userName,
+      communityId,
     } = req.body;
     let obj = {};
     if (communityScreen === "0") {
       // 查找全部
-      Active.find()
+      Active.find(communityId?{communityId}:undefined)
         .then((data) => {
           // 获取总条数
           obj.total = data.length;
-          return Active.find()
+          return Active.find(communityId?{communityId}:undefined)
             .limit(Number(pageSize)).sort([
               ['createTime', 'desc']
             ])

@@ -1,5 +1,5 @@
 /***
- * 活动表
+ * 资讯表
  */
 const express = require("express");
 const Router = express.Router();
@@ -149,16 +149,17 @@ Router.post("/find", (req, res) => {
       pageSize,
       current,
       communityScreen,
-      userName
+      userName,
+      activeId,
     } = req.body;
     let obj = {};
     if (communityScreen === "0") {
       // 查找全部
-      News.find()
+      News.find(activeId?{activeId}:undefined)
         .then((data) => {
           // 获取总条数
           obj.total = data.length;
-          return News.find()
+          return News.find(activeId?{activeId}:undefined)
             .limit(Number(pageSize)).sort([
               ['createTime', 'desc']
             ])

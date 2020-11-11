@@ -39,6 +39,7 @@ app.use("/api/community",communityRouter);
 const activeRouter = require('./router/active.js');
 app.use("/api/active",activeRouter);
 
+
 // 资讯相关接口
 const newsRouter = require('./router/news.js');
 app.use("/api/news",newsRouter);
@@ -46,6 +47,10 @@ app.use("/api/news",newsRouter);
 // 学生加入社团相关接口
 const communityAdminRouter = require('./router/joinCommunity.js');
 app.use("/api/admin",communityAdminRouter);
+
+// 学生加入活动相关接口
+const joinActiveRouter = require('./router/joinActive.js');
+app.use("/api/joinActive",joinActiveRouter);
 
 const upload = require('./router/upload.js');
 app.use("/uploads",upload);

@@ -1,7 +1,7 @@
 import request from 'umi-request';
 
 export async function queryFakeList(params) {
-  return request('/api/active/find', {
+  return request('/api/news/find', {
     method: 'POST',
     data: {
       ...params
@@ -10,7 +10,7 @@ export async function queryFakeList(params) {
 }
 
 export async function join(params) {
-  return request('/api/joinActive/add', {
+  return request('/api/news/add', {
     method: 'POST',
     data: {
       ...params
@@ -20,7 +20,7 @@ export async function join(params) {
 
 // 获取所有社团
 export async function getAllCommunityList() {
-  return request('/api/community/getCommunityList', {
+  return request('/api/active/find', {
     method: 'POST',
     data: {
       "current":1,

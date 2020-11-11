@@ -1,6 +1,6 @@
 import { queryFakeList,join } from './service';
 const Model = {
-  namespace: 'lookActive',
+  namespace: 'lookNews',
   state: {
     list: [],
   },

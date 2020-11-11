@@ -6,6 +6,7 @@ let modelSchema = mongoose.Schema({
     activeId:{type:String}, // 活动ID
     activeName:{type:String}, // 活动名称
     createTime:{type:Number}, // 活动创建时间
+    remark:{type:String}, // 备注
 });
 
 let model = mongoose.model("join_active",modelSchema);
