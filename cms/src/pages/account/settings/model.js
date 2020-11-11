@@ -1,8 +1,16 @@
-import { queryCity, queryCurrent, queryProvince, query as queryUsers } from './service';
+import {
+  queryCity,
+  queryCurrent,
+  queryProvince,
+  query as queryUsers,
+  getUserInfo,
+  updateUserInfo,
+} from './service';
 const Model = {
   namespace: 'accountAndsettings',
   state: {
     currentUser: {},
+    userInfo: {},
     province: [],
     city: [],
     isLoading: false,
@@ -43,10 +51,26 @@ const Model = {
         payload: response,
       });
     },
+
+    *getUserInfo({ payload }, { call, put }) {
+      const response = yield call(getUserInfo, payload);
+      yield put({
+        type: 'setUserInfo',
+        payload: response,
+      });
+    },
+
+    *update({ payload }, { call, put }) {
+      const response = yield call(updateUserInfo, payload);
+      return response;
+    },
   },
   reducers: {
     saveCurrentUser(state, action) {
-      return { ...state, currentUser: action.payload || {} };
+      return {
+        ...state,
+        currentUser: action.payload || {},
+      };
     },
 
     changeNotifyCount(state = {}, action) {
@@ -61,15 +85,31 @@ const Model = {
     },
 
     setProvince(state, action) {
-      return { ...state, province: action.payload };
+      return {
+        ...state,
+        province: action.payload,
+      };
     },
 
     setCity(state, action) {
-      return { ...state, city: action.payload };
+      return {
+        ...state,
+        city: action.payload,
+      };
+    },
+
+    setUserInfo(state, action) {
+      return {
+        ...state,
+        userInfo: (action.payload && action.payload.data && action.payload.data[0]) || {},
+      };
     },
 
     changeLoading(state, action) {
-      return { ...state, isLoading: action.payload };
+      return {
+        ...state,
+        isLoading: action.payload,
+      };
     },
   },
 };

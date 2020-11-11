@@ -53,7 +53,7 @@ const joinActiveRouter = require('./router/joinActive.js');
 app.use("/api/joinActive",joinActiveRouter);
 
 const upload = require('./router/upload.js');
-app.use("/uploads",upload);
+app.use("/upload/upload",upload);
 
 //生成验证码
 const getCode = require('./router/setCode.js');

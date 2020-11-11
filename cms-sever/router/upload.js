@@ -21,7 +21,7 @@ Router.post('/img',upload.single('test'),(req,res)=>{//保存图片的formdata �
         fs.writeFile(path.join(__dirname,'../public/img/' + name), data, (err)=>{
             //保存数据库的应该是  相对的图片路径
             if (err) {console.log(err)}
-            res.send({err:0,msg:'上传ok',data:"/img/" + name})
+            res.send({err:0,msg:'上传ok',data:"/public/img/" + name})
         });
     });
 })

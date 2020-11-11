@@ -233,6 +233,11 @@ export default defineConfig({
   // proxy: proxy[REACT_APP_ENV || 'dev'],
   proxy: {
     '/api/': 'http://localhost:3000/',
+    '/upload': {              
+      "target": "http://localhost:3000/", //上传图片的域名
+      "changeOrigin": true
+    }
+
     //只要是以 “/myserver ”开头的，都指向http://localhost:8060/test/
 
     //如果不想始终传递 /server ，则需要重写路径；方法如下：

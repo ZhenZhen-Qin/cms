@@ -4,7 +4,7 @@ import styles from './PhoneView.less';
 
 const PhoneView = (props) => {
   const { value, onChange } = props;
-  let values = ['', ''];
+  let values = ['86', ''];
 
   if (value) {
     values = value.split('-');

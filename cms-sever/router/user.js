@@ -71,10 +71,24 @@ Router.post('/login', (req, res) => {
  */
 Router.post('/register', (req, res) => {
     const {
-        userName,nickName,password,mobile,currentAuthority,college,specializedSubject,gender
+        userName,
+        nickName,
+        password,
+        mobile,
+        currentAuthority,
+        college,
+        specializedSubject,
+        gender
     } = req.body
     User.insertMany({
-        userName,nickName,password,mobile,currentAuthority,college,specializedSubject,gender
+            userName,
+            nickName,
+            password,
+            mobile,
+            currentAuthority,
+            college,
+            specializedSubject,
+            gender
         })
         .then((data) => {
             res.send({
@@ -145,16 +159,16 @@ Router.post('/getUserList', (req, res) => {
         current,
     } = req.body;
     let obj = {};
-        // 查找全部
-        User.find()
+    // 查找全部
+    User.find()
         .then((data) => {
             // 获取总条数
             obj.total = data.length;
             return User.find()
-            .limit(Number(pageSize)).sort([
-                ['createTime', 'desc']
-            ])
-            .skip((Number(current) - 1) * Number(pageSize));
+                .limit(Number(pageSize)).sort([
+                    ['createTime', 'desc']
+                ])
+                .skip((Number(current) - 1) * Number(pageSize));
         })
         .then((data) => {
             obj.current = current;
@@ -166,12 +180,84 @@ Router.post('/getUserList', (req, res) => {
         .catch((err) => {
             console.log(err);
             res.send({
-            err: -1,
-            msg: "查询错误",
-            data: null,
+                err: -1,
+                msg: "查询错误",
+                data: null,
             });
         });
-       
+
+});
+
+
+/**
+ * @api {post} /borrowbook/updateBorrowBook updateBorrowBook
+ * @apiName updateBorrowBook
+ * @apiGroup borrowbook
+ *
+ * @apiParam {String} readerName 读者名不可更改
+ * @apiParam {String} bookname 书名
+ * @apiParam {String} bookid 书ID
+ * @apiParam {String} borrowDate 借书日期
+ * @apiParam {String} returnDate 还书日期
+ * @apiParam {String} fine 逾期的罚金
+ *
+ *
+ * @apiSuccess {Number} err 错误码 0：ok  -1 失败
+ * @apiSuccess {String} msg  结果信息
+ * @apiSuccess {String} data  返回数据
+ */
+Router.post("/update", (req, res) => {
+    const params = req.body;
+    User.updateOne({
+            userName: params.userName
+        }, {
+            $set: {
+                ...params
+            }
+        })
+        .then((data) => {
+            console.log(data);
+            res.send({
+                err: 0,
+                msg: "操作成功",
+                data: null,
+            })
+        })
+        .catch((err) => {
+            console.log(err)
+            res.send({
+                err: -1,
+                msg: '操作失败',
+                data: null
+            })
+        })
+});
+
+// getUserInfo
+Router.post('/getUserInfo', (req, res) => {
+    let {
+        userName
+    } = req.body;
+    // 查找全部
+    User.find({
+            userName
+        })
+        .then((data) => {
+            res.send({
+                err: 0,
+                msg: "查询成功",
+                data,
+            });
+        })
+        .catch((err) => {
+            console.log(err);
+            res.send({
+                err: -1,
+                msg: "查询错误",
+                data: null,
+            });
+        });
+
 });
 
 //邮箱验证码的处理
