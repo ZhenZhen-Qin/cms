@@ -45,6 +45,8 @@ const Model = {
 
         localStorage.setItem(LOCAL_STORAGE_KEYS.USER_NAME, response.userName);
         localStorage.setItem(LOCAL_STORAGE_KEYS.NICK_NAME, response.nickName);
+        localStorage.setItem(LOCAL_STORAGE_KEYS.HEAD_IMG, response.headImg);
+        localStorage.setItem(LOCAL_STORAGE_KEYS.currentAuthority, response.currentAuthority);
 
         const urlParams = new URL(window.location.href);
         const params = getPageQuery();
@@ -65,7 +67,11 @@ const Model = {
           }
         }
 
-        history.replace(redirect || '/');
+        if(response.currentAuthority !== 'sysadmin'){
+          history.replace(redirect || '/student/look-community');
+        }else{
+          history.replace(redirect || '/list/audit-list');
+        }
       }
     },
 

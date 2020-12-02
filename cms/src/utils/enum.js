@@ -24,6 +24,8 @@ export const COMMUNITY_SCREEN = {
 export const LOCAL_STORAGE_KEYS = {
   USER_NAME: 'userName', // 用于登录的用户名
   NICK_NAME: 'nickName', // 昵称
+  HEAD_IMG: 'headImg', // 头像
+  currentAuthority: 'currentAuthority', // 角色
 }
 
 

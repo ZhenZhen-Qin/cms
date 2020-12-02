@@ -99,9 +99,7 @@ const TableList = () => {
           status: 1,
           createTime: Date.now(),
         };
-        options.creatorUserName = USER_NAME;
-        options.creatorNickName = NICK_NAME;
-
+       
     try {
       await addCommunityInfo(options);
       hide();

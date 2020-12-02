@@ -65,6 +65,11 @@ const OperationModal = (props) => {
     }
   }, [props.current]);
 
+  var radioKey = '1';
+  const changeRadioKey = (e) => {
+    radioKey = e && e.target && e.target.value?e.target.value:'1';
+  };
+
   // 接口  请求所有用户和该社团的管理员
   const handleSubmit = () => {
     if (!form) return;
@@ -190,7 +195,7 @@ const OperationModal = (props) => {
                                   },
                                 ]}
                               >
-                                <Radio.Group defaultValue="1">
+                                <Radio.Group defaultValue="1" onChange={(e)=>changeRadioKey(e)}>
                                   <Radio value="1">通过</Radio>
                                   <Radio value="2">不通过</Radio>
                                 </Radio.Group>
@@ -201,9 +206,10 @@ const OperationModal = (props) => {
                         onOk: () => {
                           const params = {
                             ...item,
-                            status: form.getFieldValue('reviewWay'),
+                            status: radioKey
                           };
                           updateMemberStatus(params);
+
                         },
                         onOkText: '确定',
                       });

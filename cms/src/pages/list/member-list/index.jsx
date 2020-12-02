@@ -116,6 +116,7 @@ const TableList = () => {
       communityName: current.name,
       creatorUserName: current.creatorUserName,
       creatorNickName: current.creatorNickName,
+      status: '1',
       memberName: selectAdminObj.memberName,
       memberNick: selectAdminObj.memberNick,
       isAdmin: '0',
@@ -173,9 +174,11 @@ const TableList = () => {
         if (res.err === 0) {
           message.success('操作成功');
           queryCommunityAdminList(current._id);
-        if (actionRef.current) {
-          actionRef.current.reload();
-        }
+          if (actionRef.current) {
+            actionRef.current.reload();
+
+            setAddAdminVisible(false);
+          }
         } else {
           message.error('操作失败请重试！');
         }

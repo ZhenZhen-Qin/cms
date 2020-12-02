@@ -42,6 +42,7 @@ Router.post('/login', (req, res) => {
                     type: 'account',
                     userName: data[0].userName,
                     nickName: data[0].nickName,
+                    headImg: data[0].headImg,
                 });
             }
         })
